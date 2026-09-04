@@ -1,0 +1,66 @@
+# Compila el APK de ESFIGHTERS en cada cambio del juego o del proyecto Android
+# y lo deja para descargar en la sección "Releases" del repositorio (etiqueta apk-latest).
+name: APK de ESFIGHTERS
+
+on:
+  push:
+    paths:
+      - "android/**"
+      - "esfighters/**"
+      - ".github/workflows/android-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    name: Compilar APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: SDK de Android
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "platforms;android-34 build-tools;34.0.0 platform-tools"
+
+      - name: Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.9"
+
+      - name: Compilar (firma de depuración, uso personal)
+        working-directory: android
+        run: gradle assembleDebug --no-daemon --console=plain
+
+      - name: Preparar el archivo
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk ESFIGHTERS.apk
+
+      - name: Guardar el APK como artefacto del flujo
+        uses: actions/upload-artifact@v4
+        with:
+          name: ESFIGHTERS-apk
+          path: ESFIGHTERS.apk
+
+      - name: Publicar el APK en Releases (etiqueta apk-latest)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! gh release view apk-latest --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release create apk-latest ESFIGHTERS.apk \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "ESFIGHTERS APK" \
+              --notes "APK de uso personal compilado automáticamente. Descarga ESFIGHTERS.apk e instálalo en tu Android (activa 'instalar apps de origen desconocido' la primera vez)."
+          else
+            gh release upload apk-latest ESFIGHTERS.apk --clobber --repo "$GITHUB_REPOSITORY"
+            gh release edit apk-latest --repo "$GITHUB_REPOSITORY" --notes "APK de uso personal compilado automáticamente el $(date -u +%Y-%m-%d\ %H:%M) UTC desde el commit ${GITHUB_SHA::7}. Descarga ESFIGHTERS.apk e instálalo en tu Android (activa 'instalar apps de origen desconocido' la primera vez)."
+          fi

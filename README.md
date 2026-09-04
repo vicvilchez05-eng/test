@@ -22,6 +22,17 @@ Teclado J2: flechas, teclado numérico `1` `2` puños, `4` `5` patadas, `0` bloq
 
 Los sprites, los escenarios y los sonidos se generan por código en un canvas de 320 × 180 escalado sin suavizado.
 
+### APK para Android (uso personal)
+
+La carpeta `android/` contiene una app mínima que muestra el juego a pantalla completa, sin internet.
+Cada vez que cambia el juego o la app, GitHub Actions compila el APK y lo deja en la sección
+**Releases** del repositorio, etiqueta `apk-latest`, como `ESFIGHTERS.apk`.
+
+Para instalarlo: descarga el archivo en el celular, ábrelo y acepta "instalar apps de origen desconocido"
+la primera vez. Va firmado con una clave de depuración, suficiente para uso personal; no sirve para Google Play.
+
+Para compilarlo en una PC con Android Studio: abre la carpeta `android/` y ejecuta `gradle assembleDebug`.
+
 ## Serpiente LCD · `index.html`
 
 El clásico de la serpiente con estética de consola de bolsillo. Desliza el dedo o usa la cruceta.
