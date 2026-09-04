@@ -70,6 +70,8 @@ import com.esforal.gamelauncher.domain.model.PlayerStats
 import com.esforal.gamelauncher.presentation.LauncherUiState
 import com.esforal.gamelauncher.presentation.background.AnimatedBackground
 import com.esforal.gamelauncher.presentation.common.DrawableImage
+import com.esforal.gamelauncher.presentation.common.formatLastPlayed
+import com.esforal.gamelauncher.presentation.common.formatPlayTime
 import com.esforal.gamelauncher.presentation.common.LocalAppImageSource
 import com.esforal.gamelauncher.presentation.components.GhostButton
 import com.esforal.gamelauncher.presentation.components.GlassPanel
@@ -80,14 +82,10 @@ import com.esforal.gamelauncher.presentation.nowplaying.NowPlayingChip
 import com.esforal.gamelauncher.presentation.performance.PerformanceBar
 import com.esforal.gamelauncher.presentation.theme.Theme
 import kotlinx.coroutines.delay
-import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
-import java.util.concurrent.TimeUnit
 
 /**
  * Disposicion de carrusel, traida de la version de escritorio.
@@ -170,6 +168,10 @@ internal fun CarouselLayout(
             // perfil, y el nombre es lo que dice que juego esta elegido.
             val showData = maxHeight >= DATA_ROW_MIN_HEIGHT
 
+            // Dentro de la Column el receptor de BoxWithConstraints queda
+            // tapado por el de Column, asi que el alto libre se captura aqui.
+            val panelMaxHeight = maxHeight - HEADER_HEIGHT
+
             LaunchedEffect(index, cardWidth) {
                 if (index >= 0) row.animateScrollToItem(index, 0)
             }
@@ -182,7 +184,7 @@ internal fun CarouselLayout(
                     performanceExpanded = performanceExpanded,
                     showLibrary = !pages.isNullOrEmpty(),
                     actions = actions,
-                    maxPanelHeight = maxHeight - HEADER_HEIGHT,
+                    maxPanelHeight = panelMaxHeight,
                 )
 
                 Spacer(Modifier.weight(1f))
@@ -654,16 +656,21 @@ private fun SelectedGameData(
                 horizontalArrangement = Arrangement.spacedBy(28.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                // Los dos formateadores son los del propio launcher: el de la
+                // ultima vez lo resuelve DateUtils, que ya viene traducido con
+                // el sistema, y el del tiempo jugado usa las mismas cadenas que
+                // el perfil. Escribir aqui otros dos daria dos formatos
+                // distintos para el mismo dato en dos pantallas.
                 DataPoint(
                     label = stringResource(R.string.carousel_last_played),
                     value = playtime
-                        ?.let { relativeDay(it.lastPlayedEpochMillis) }
+                        ?.let { formatLastPlayed(it.lastPlayedEpochMillis) }
                         ?: stringResource(R.string.carousel_no_usage_data),
                 )
                 DataPoint(
                     label = stringResource(R.string.carousel_played),
                     value = playtime
-                        ?.let { humanDuration(it.playTimeMillis) }
+                        ?.let { formatPlayTime(it.playTimeMillis) }
                         ?: stringResource(R.string.carousel_no_usage_data),
                 )
                 DataPoint(
@@ -701,35 +708,6 @@ private fun DataPoint(label: String, value: String, color: Color? = null) {
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-    }
-}
-
-/** Hoy, ayer, o la fecha. */
-@Composable
-private fun relativeDay(epochMillis: Long): String {
-    val date = Instant.ofEpochMilli(epochMillis).atZone(ZoneId.systemDefault()).toLocalDate()
-    val today = LocalDate.now()
-    return when (date) {
-        today -> stringResource(R.string.day_today)
-        today.minusDays(1) -> stringResource(R.string.day_yesterday)
-        else -> date.format(
-            DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).withLocale(Locale.getDefault())
-        )
-    }
-}
-
-/**
- * "3 h 20 min" o "45 min". Nunca "0 min" cuando el dato falta: el que llama ya
- * ha comprobado que hay acceso al uso, y un cero se leeria como "no has jugado".
- */
-@Composable
-private fun humanDuration(millis: Long): String {
-    val hours = TimeUnit.MILLISECONDS.toHours(millis)
-    val minutes = TimeUnit.MILLISECONDS.toMinutes(millis) % 60
-    return if (hours > 0) {
-        stringResource(R.string.duration_hours_minutes, hours, minutes)
-    } else {
-        stringResource(R.string.duration_minutes, minutes)
     }
 }
 

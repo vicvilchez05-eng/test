@@ -31,10 +31,5 @@
          jugado, es que no se puede saber. -->
     <string name="carousel_no_usage_data">No usage access</string>
 
-    <string name="day_today">Today</string>
-    <string name="day_yesterday">Yesterday</string>
-
-    <string name="duration_hours_minutes">%1$d h %2$d min</string>
-    <string name="duration_minutes">%1$d min</string>
 
 </resources>

@@ -167,6 +167,10 @@ internal fun StripLayout(
             // sobra: es un atajo, y la ficha con "Jugar" no lo es.
             val showRecentPanel = maxHeight >= RECENT_PANEL_MIN_HEIGHT
 
+            // Dentro de la Column el receptor de BoxWithConstraints queda
+            // tapado por el de Column, asi que el alto libre se captura aqui.
+            val panelMaxHeight = maxHeight - STRIP_HEADER_HEIGHT
+
             LaunchedEffect(index, tile) {
                 if (index >= 0) row.animateScrollToItem(index)
             }
@@ -181,7 +185,7 @@ internal fun StripLayout(
                     telemetry = telemetry,
                     performanceExpanded = performanceExpanded,
                     actions = actions,
-                    maxPanelHeight = maxHeight - STRIP_HEADER_HEIGHT,
+                    maxPanelHeight = panelMaxHeight,
                 )
 
                 Spacer(Modifier.height(10.dp))

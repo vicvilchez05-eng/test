@@ -54,6 +54,11 @@ ficheros.
 | `domain/model/HomeLayout.kt` | Dos valores más en el enum, con su documentación |
 | `presentation/launcher/LauncherScreen.kt` | Dos ramas más en el `when` que reparte |
 | `presentation/settings/SettingsContent.kt` | Dos tarjetas más en la sección de disposición |
+| `app/build.gradle.kts` | `versionCode` 21 → 22 y `versionName` 0.21 → 0.22 |
+
+La subida de versión no es un extra: es la regla del propio proyecto (§3.bis del
+handoff). Dos APK con la misma versión son indistinguibles una vez instalados, y
+eso ya costó una vuelta entera.
 
 Los tres se entregan **completos**, no como parche: se copian encima de los del
 proyecto. Están tomados de la copia del proyecto que hay en Drive y verificados
@@ -135,23 +140,35 @@ para inventarlo.
 
 **Verificado:**
 
-- Los tres ficheros modificados coinciden byte a byte con los del Drive antes de
-  aplicarles el cambio (23 415, 18 896 y 27 576 bytes en los casos que se
-  comprobaron uno a uno; el resto de la copia también se contrastó contra el
-  tamaño que publica Drive).
-- **Sintaxis**: los cinco ficheros Kotlin pasan el analizador del compilador de
-  Kotlin 2.4.10 sin un solo error de parseo. Los errores de tipo que quedan son
-  todos referencias sin resolver de Compose y AndroidX, que no están en este
-  contenedor; el fichero original de ajustes, sin tocar, produce exactamente el
-  mismo tipo de errores, lo que confirma que son del entorno y no del código.
-- **Lógica**: 15 comprobaciones sobre las reglas que se escribieron —el filtro de
-  recientes, el reparto por estantería y el paso por arrastre— compiladas y
-  ejecutadas en verde.
+- Los ficheros modificados coinciden byte a byte con los del Drive antes de
+  aplicarles el cambio.
+- **Compila de verdad.** Se reconstruyó el proyecto entero en este contenedor
+  —SDK de Android 37.0, build-tools 37.0.0, AGP 9.3.2, Gradle 9.5.0, JDK 21— y
+  `:app:assembleDebug` termina en BUILD SUCCESSFUL. El APK resultante pesa 20 MB,
+  declara `com.esforal.gamelauncher` 0.22 (versionCode 22), minSdk 26 y
+  targetSdk 37, y su firma verifica con el esquema v2.
+- **Las piezas nuevas están dentro del APK**: `CarouselLayoutKt`, `StripLayoutKt`
+  y `SelectionDragKt` aparecen en los dex, y las cadenas nuevas —incluidas
+  «Rejilla», «Franja» y «Viene de Hexpad para Windows»— están en la tabla de
+  recursos en los dos idiomas.
+- **Lógica**: 15 comprobaciones sobre las reglas escritas —filtro de recientes,
+  reparto por estantería y paso por arrastre— compiladas y ejecutadas en verde.
+
+**Tres fallos reales que salieron al verificar, y están corregidos:**
+
+1. El gesto de arrastre pasaba la selección como clave de `pointerInput`, así que
+   al cambiar de juego el bloque se reiniciaba y **cancelaba el gesto en curso**.
+   Se sacó a `SelectionDrag.kt` con clave fija y el índice en una variable local
+   del gesto.
+2. Las cadenas `duration_hours_minutes` y `duration_minutes` **ya existían** en
+   el proyecto y se duplicaron; el empaquetado de recursos falló. Ahora se usan
+   `formatPlayTime` y `formatLastPlayed`, que el launcher ya tenía en
+   `presentation/common/Formatters.kt`.
+3. Dentro de la `Column`, el receptor de `BoxWithConstraints` queda tapado y
+   `maxHeight` no se ve. El alto libre se captura ahora antes de entrar.
 
 **No verificado, y hay que hacerlo antes de dar esto por bueno:**
 
-- **No se ha compilado el proyecto entero.** Aquí no hay SDK de Android. Hace
-  falta un `./gradlew assembleDebug` en una máquina con Android Studio.
 - **No se ha visto en pantalla.** Todo el reparto de alto está calculado, no
   mirado. Hay que probarlo a 411 dp y, sobre todo, **a 309 dp**
   (`adb shell wm density 560` sobre 2400×1080), que es donde el proyecto ya se
@@ -161,6 +178,10 @@ para inventarlo.
 - **Mando**: las fichas son `clickable`, así que la cruceta mueve el foco y A
   activa, y los gatillos L1/R1 siguen rotando por la lista desde la raíz. No se
   ha comprobado con un mando de verdad, igual que el resto de la app.
+- **El APK va firmado con la clave de debug**, porque el keystore no está en
+  Drive a propósito. No se actualiza sobre una instalación firmada con la clave
+  real: hay que desinstalar primero, y eso borra los juegos y los logros (§6.quinquies
+  del handoff).
 
 ## 7. Cómo llevarlo al proyecto
 
