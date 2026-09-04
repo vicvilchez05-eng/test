@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Traduccion al castellano de los textos de las dos disposiciones traidas de
+    Hexpad PC. Los nombres son los que usa la version de escritorio en su propia
+    pantalla de ajustes: alli se llaman Rejilla y Consola.
+
+    "Consola" ya esta cogido por la disposicion que el movil tenia de antes, asi
+    que la del escritorio se llama aqui "Franja", que es lo que es y ademas la
+    distingue de un vistazo en la lista de ajustes. El texto de ayuda dice de
+    donde viene cada una.
+-->
+<resources>
+
+    <string name="settings_layout_carousel">Rejilla</string>
+    <string name="settings_layout_carousel_hint">Una portada grande en el centro y las demás al lado, sobre el fondo del juego. Viene de Hexpad para Windows.</string>
+    <string name="settings_layout_strip">Franja</string>
+    <string name="settings_layout_strip_hint">Una fila de iconos grandes arriba, los juegos primero y los atajos después, con una ficha compacta debajo. Viene de Hexpad para Windows.</string>
+
+    <string name="shelf_all">Todos</string>
+    <string name="shelf_recent">Recientes</string>
+    <string name="strip_nothing_recent">Nada jugado aún</string>
+
+    <string name="carousel_last_played">Última vez</string>
+    <string name="carousel_played">Jugado</string>
+    <string name="carousel_state">Estado</string>
+    <string name="carousel_installed">Instalado</string>
+    <string name="carousel_not_installed">No instalado</string>
+    <string name="carousel_no_usage_data">Sin acceso al uso</string>
+
+    <string name="day_today">Hoy</string>
+    <string name="day_yesterday">Ayer</string>
+
+    <string name="duration_hours_minutes">%1$d h %2$d min</string>
+    <string name="duration_minutes">%1$d min</string>
+
+</resources>
