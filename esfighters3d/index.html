@@ -139,6 +139,11 @@
   .result p { margin: 0; font-family: var(--body); font-weight: 600; font-size: clamp(12px, 2.2vw, 20px); letter-spacing: .2em; color: #dfe3ee; text-shadow: 0 2px 0 #000; }
   .result .hint { margin-top: 1.4em; }
 
+  .fatal { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; padding: 6%; background: rgba(7, 8, 12, .92); color: var(--ink); font-family: var(--body); }
+  .fatal h2 { margin: 0 0 .3em; font-family: var(--display); font-size: clamp(24px, 5vw, 44px); color: var(--red); line-height: 1; }
+  .fatal p { margin: 0 0 .5em; font-size: clamp(13px, 2.2vw, 18px); max-width: 44ch; }
+  .fatal .detail { color: var(--dim); font-size: clamp(11px, 1.8vw, 14px); }
+
   /* mando tactil y teclado */
   .pad { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; background: var(--panel); border-radius: 14px; padding: 12px; user-select: none; -webkit-user-select: none; overflow: hidden; }
   .dpad { display: grid; grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(3, 48px); }
@@ -286,6 +291,11 @@
     </div>
 
     <div class="vignette"></div>
+    <div class="fatal" id="fatal" hidden>
+      <h2>No se pudo iniciar el 3D</h2>
+      <p>Tu navegador no pudo crear la escena 3D. Prueba a recargar la página, a abrirla en Chrome o Safari, o a activar la aceleración por hardware.</p>
+      <p class="detail"></p>
+    </div>
   </div>
 
   <section class="pad" id="pad" aria-label="Controles táctiles">
@@ -475,7 +485,19 @@ function sfx(name) {
 
 // ---------------------------------------------------------------- escena 3D
 var stageEl = document.getElementById('stage'), canvas = document.getElementById('gl');
-var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: 'high-performance' });
+function fatal(err) {
+  var box = document.getElementById('fatal');
+  if (!box) return;
+  box.hidden = false;
+  box.querySelector('.detail').textContent = String(err && err.message ? err.message : err);
+  var t = document.getElementById('ui-title'); if (t) t.hidden = true;
+  try { console.error(err); } catch (e) {}
+}
+try {
+if (typeof THREE === 'undefined') throw new Error('No se pudo cargar la librería Three.js');
+var renderer;
+try { renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, powerPreference: 'high-performance' }); }
+catch (e1) { renderer = new THREE.WebGLRenderer({ canvas: canvas }); }
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputEncoding = THREE.sRGBEncoding; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15;
@@ -1280,12 +1302,13 @@ function frame(now) {
   for (var s = 0; s < neonSigns.length; s++) { var ns = neonSigns[s]; if (Math.random() < 0.012) ns.mesh.material.opacity = 0.45; else ns.mesh.material.opacity += (1 - ns.mesh.material.opacity) * 0.2; }
   updateCamera(dtF);
   if (SCENE === 'fight' || SCENE === 'result') updateHud();
-  renderer.render(scene, camera);
+  try { renderer.render(scene, camera); } catch (e) { fatal(e); return; }
   requestAnimationFrame(frame);
 }
 cam.x = 0; cam.y = 1.7; cam.z = 7.2; cam.tx = 0; cam.ty = 1.0;
 go('title');
 requestAnimationFrame(frame);
+} catch (err) { fatal(err); }
 })();
 </script>
 </body>
