@@ -1,22 +1,28 @@
-# Serpiente LCD
+# Juegos hechos desde el celular
 
-Un juego de la serpiente en un solo archivo HTML, con estética de consola de bolsillo
-con pantalla LCD. Funciona en el celular y en la PC, sin instalar nada.
+Dos juegos en HTML5, cada uno en un solo archivo. Se abren en cualquier navegador,
+en el celular o en la PC, sin instalar nada.
 
-## Cómo jugar
+## ESFIGHTERS · `esfighters/index.html`
 
-Abre `index.html` en cualquier navegador.
+Juego de peleas 2D en pixel art.
 
-- **Celular**: desliza el dedo sobre la pantalla verde o usa la cruceta. `A` juega o pausa, `B` reinicia.
-- **PC**: flechas o `W` `A` `S` `D` para moverte, `espacio` para jugar o pausar, `P` pausa, `R` reinicia.
+- **4 luchadores**: John Camacho (boxeador), Víctor Vilchez (taekwondo), Marta Sol (capoeira) y Bruno Castro (peso pesado).
+  Cada uno tiene velocidad, fuerza y alcance distintos.
+- **4 ataques por personaje**: 2 puños y 2 patadas, con nombre propio. Si atacas agachado das golpes bajos.
+- **Bloqueo, salto y agacharse.** El bloqueo de pie no para los barridos, el bloqueo agachado no para los golpes en salto
+  y agacharse esquiva la patada alta.
+- **2 escenarios**: Azotea nocturna y Muelle al atardecer.
+- **Menú de selección de personaje**, selección de escenario y pantalla VS con la lista de ataques.
+- **1 jugador contra la CPU** o **2 jugadores** en el mismo teclado. Gana quien se lleve 2 rondas de 60 segundos.
 
-Cada manzana vale 10 puntos y hace que la serpiente vaya un poco más rápido.
-Chocar con la pared o con tu propio cuerpo termina la partida.
-El récord se guarda en el navegador del dispositivo.
+Controles en el celular: cruceta y botones en pantalla.
+Teclado J1: `A` `D` mover, `W` saltar, `S` agacharse, `J` `K` puños, `U` `I` patadas, `L` bloqueo, `Intro` start.
+Teclado J2: flechas, teclado numérico `1` `2` puños, `4` `5` patadas, `0` bloqueo.
 
-## Detalles
+Los sprites, los escenarios y los sonidos se generan por código en un canvas de 320 × 180 escalado sin suavizado.
 
-- Tablero de 20 × 20 celdas dibujado en `<canvas>`, con los "píxeles apagados" de una LCD de verdad.
-- Sin dependencias: HTML, CSS y JavaScript en un archivo. Las tipografías vienen de Google Fonts y
-  tienen respaldo si no cargan.
-- Controles por teclado, gestos táctiles y botones en pantalla, con vibración en celulares que la soportan.
+## Serpiente LCD · `index.html`
+
+El clásico de la serpiente con estética de consola de bolsillo. Desliza el dedo o usa la cruceta.
+Cada manzana vale 10 puntos y acelera la serpiente. El récord se guarda en el dispositivo.
