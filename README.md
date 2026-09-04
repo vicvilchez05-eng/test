@@ -1,6 +1,6 @@
 # Juegos hechos desde el celular
 
-Dos juegos en HTML5, cada uno en un solo archivo. Se abren en cualquier navegador,
+Tres juegos en HTML5, cada uno en un solo archivo. Se abren en cualquier navegador,
 en el celular o en la PC, sin instalar nada.
 
 ## ESFIGHTERS · `esfighters/index.html`
@@ -32,6 +32,20 @@ Para instalarlo: descarga el archivo en el celular, ábrelo y acepta "instalar a
 la primera vez. Va firmado con una clave de depuración, suficiente para uso personal; no sirve para Google Play.
 
 Para compilarlo en una PC con Android Studio: abre la carpeta `android/` y ejecuta `gradle assembleDebug`.
+
+## ESFIGHTERS 3D · `esfighters3d/index.html`
+
+Juego de peleas en 3D con Three.js. John Camacho, un soldado con pistola, contra Víctor Vilchez, un ninja con katana,
+en una calle de ciudad de noche con lluvia ligera, letreros de neón y charcos.
+
+- **2 personajes** con modelos 3D animados por código: el soldado tiene un disparo a distancia que se esquiva agachándose;
+  el ninja tiene más alcance con la katana y salta más alto.
+- **4 ataques por personaje** (2 de puño y 2 de patada), golpes agachados, bloqueo, salto y agacharse.
+- **Un escenario**: ciudad bajo la lluvia, con cámara que sigue la pelea, cámara lenta en el KO y golpes con impacto.
+- **Menús**: portada con los dos luchadores, selección de personaje, pantalla VS con la lista de ataques y resultado.
+- **1 jugador contra la CPU** o **2 jugadores** en el mismo teclado. Mismos controles que ESFIGHTERS.
+
+La librería Three.js se incluye en la carpeta (`three.min.js`, licencia MIT) para que funcione sin internet.
 
 ## Serpiente LCD · `index.html`
 
