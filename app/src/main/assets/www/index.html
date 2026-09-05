@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<title>ESFshoot</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<canvas id="gl"></canvas>
+
+<!-- ================= HUD ================= -->
+<div id="hud" class="hidden">
+  <!-- Escudo / vida (estilo Halo, arriba centro) -->
+  <div id="shield-wrap">
+    <div id="shield-label">ESCUDO</div>
+    <div id="shield-bar"><div id="shield-fill"></div><div id="shield-segs"></div></div>
+    <div id="health-bar"><div id="health-fill"></div></div>
+    <div id="shield-alert" class="hidden">¡ESCUDO CAÍDO!</div>
+  </div>
+
+  <!-- Marcador -->
+  <div id="score">
+    <div class="score-row"><span class="score-k">BAJAS</span><span id="kills">0</span></div>
+    <div class="score-row"><span class="score-k">MUERTES</span><span id="deaths">0</span></div>
+    <div class="score-row score-goal"><span class="score-k">OBJETIVO</span><span id="goal">20</span></div>
+  </div>
+
+  <!-- Kill feed -->
+  <div id="killfeed"></div>
+
+  <!-- Medalla / anuncio -->
+  <div id="medal" class="hidden"></div>
+
+  <!-- Mira -->
+  <div id="crosshair"><i></i><i></i><i></i><i></i></div>
+  <div id="hitmarker" class="hidden"><i></i><i></i><i></i><i></i></div>
+
+  <!-- Radar / detector de movimiento -->
+  <div id="radar-wrap"><canvas id="radar" width="150" height="150"></canvas><div id="radar-label">DETECTOR</div></div>
+
+  <!-- Munición -->
+  <div id="ammo-wrap">
+    <div id="weapon-name">FUSIL DE PULSO MR-7</div>
+    <div id="ammo-main"><span id="ammo-mag">30</span><span id="ammo-sep">/</span><span id="ammo-res">120</span></div>
+    <div id="ammo-bullets"></div>
+    <div id="reload-hint" class="hidden">RECARGANDO…</div>
+  </div>
+
+  <!-- Vignette de daño -->
+  <div id="dmg-vignette"></div>
+  <div id="dmg-dir"></div>
+  <div id="flash-white"></div>
+
+  <!-- ================= CONTROLES TÁCTILES ================= -->
+  <div id="controls">
+    <div id="zone-move">
+      <div id="stick-base"><div id="stick-knob"></div></div>
+    </div>
+    <div id="zone-look"></div>
+
+    <button class="tbtn" id="btn-fire"><span>FUEGO</span></button>
+    <button class="tbtn" id="btn-reload"><span>RECARGA</span><small>R</small></button>
+    <button class="tbtn" id="btn-jump"><span>SALTO</span><small>⇧</small></button>
+    <button class="tbtn" id="btn-crouch"><span>AGACHAR</span><small>▼</small></button>
+    <button class="tbtn small" id="btn-pause"><span>II</span></button>
+  </div>
+</div>
+
+<!-- ================= MENÚ PRINCIPAL ================= -->
+<div id="menu" class="overlay">
+  <div class="grid-bg"></div>
+  <div class="scanlines"></div>
+  <div class="menu-panel">
+    <div class="logo">
+      <div class="logo-top">ESF</div>
+      <div class="logo-main">SHOOT</div>
+      <div class="logo-sub">// OPERACIÓN ECLIPSE — CUBIERTA 7</div>
+    </div>
+    <div class="menu-buttons">
+      <button class="mbtn primary" id="m-play"><span>▶ INICIAR MISIÓN</span></button>
+      <button class="mbtn" id="m-options"><span>⚙ OPCIONES</span></button>
+      <button class="mbtn" id="m-help"><span>? INSTRUCCIONES</span></button>
+    </div>
+    <div class="menu-foot">
+      <span>NAVE: UNSC-ESF "VANGUARDIA"</span><span>|</span><span>ENEMIGOS: XENOMORFOS DE PLASMA / LÁSER</span>
+    </div>
+  </div>
+  <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+</div>
+
+<!-- Opciones -->
+<div id="options" class="overlay hidden">
+  <div class="grid-bg"></div>
+  <div class="menu-panel">
+    <h2>OPCIONES</h2>
+    <label class="opt">
+      <span>Sensibilidad de mira</span>
+      <input type="range" id="opt-sens" min="0.3" max="2.5" step="0.1" value="1">
+      <b id="opt-sens-v">1.0</b>
+    </label>
+    <label class="opt">
+      <span>Invertir eje Y</span>
+      <input type="checkbox" id="opt-inv">
+    </label>
+    <label class="opt">
+      <span>Disparo automático al apuntar</span>
+      <input type="checkbox" id="opt-auto">
+    </label>
+    <label class="opt">
+      <span>Sonido</span>
+      <input type="checkbox" id="opt-sound" checked>
+    </label>
+    <label class="opt">
+      <span>Calidad gráfica</span>
+      <select id="opt-quality">
+        <option value="low">Baja</option>
+        <option value="med" selected>Media</option>
+        <option value="high">Alta</option>
+      </select>
+    </label>
+    <button class="mbtn" id="o-back"><span>← VOLVER</span></button>
+  </div>
+</div>
+
+<!-- Instrucciones -->
+<div id="help" class="overlay hidden">
+  <div class="grid-bg"></div>
+  <div class="menu-panel">
+    <h2>INSTRUCCIONES</h2>
+    <ul class="help-list">
+      <li><b>Joystick izquierdo</b> — moverse por la nave.</li>
+      <li><b>Arrastrar mitad derecha</b> — apuntar.</li>
+      <li><b>FUEGO</b> — mantener pulsado para disparar el fusil de pulso.</li>
+      <li><b>RECARGA</b> — cambiar cargador (30 balas).</li>
+      <li><b>SALTO / AGACHAR</b> — esquivar el plasma y cubrirte tras las cajas.</li>
+      <li><b>Escudo</b> — se regenera si evitas daño unos segundos.</li>
+      <li><b>Objetivo</b> — elimina 20 xenomorfos para asegurar la cubierta.</li>
+      <li class="pc">PC: WASD · ratón · clic · R · Espacio · C · Esc</li>
+    </ul>
+    <button class="mbtn" id="h-back"><span>← VOLVER</span></button>
+  </div>
+</div>
+
+<!-- Pausa -->
+<div id="pause" class="overlay hidden">
+  <div class="grid-bg"></div>
+  <div class="menu-panel">
+    <h2>PAUSA</h2>
+    <div class="pause-stats"><span>BAJAS <b id="p-kills">0</b></span><span>MUERTES <b id="p-deaths">0</b></span></div>
+    <button class="mbtn primary" id="p-resume"><span>▶ CONTINUAR</span></button>
+    <button class="mbtn" id="p-options"><span>⚙ OPCIONES</span></button>
+    <button class="mbtn" id="p-quit"><span>✕ ABANDONAR MISIÓN</span></button>
+  </div>
+</div>
+
+<!-- Muerte / reaparición -->
+<div id="death" class="overlay transparent hidden">
+  <div class="death-box">
+    <div class="death-title">HAS CAÍDO</div>
+    <div class="death-by" id="death-by">Eliminado por xenomorfo de plasma</div>
+    <div class="death-count">REAPARECIENDO EN <b id="death-timer">3</b></div>
+  </div>
+</div>
+
+<!-- Fin de partida -->
+<div id="gameover" class="overlay hidden">
+  <div class="grid-bg"></div>
+  <div class="menu-panel">
+    <h2 id="go-title">CUBIERTA ASEGURADA</h2>
+    <div class="go-stats">
+      <div><span>BAJAS</span><b id="go-kills">0</b></div>
+      <div><span>MUERTES</span><b id="go-deaths">0</b></div>
+      <div><span>PRECISIÓN</span><b id="go-acc">0%</b></div>
+      <div><span>TIEMPO</span><b id="go-time">0:00</b></div>
+    </div>
+    <button class="mbtn primary" id="go-again"><span>↻ NUEVA MISIÓN</span></button>
+    <button class="mbtn" id="go-menu"><span>← MENÚ</span></button>
+  </div>
+</div>
+
+<div id="loading" class="overlay"><div class="loader"><div class="loader-bar"></div><div>CARGANDO SISTEMAS…</div></div></div>
+
+<script src="lib/three.min.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/input.js"></script>
+<script src="js/world.js"></script>
+<script src="js/weapon.js"></script>
+<script src="js/enemies.js"></script>
+<script src="js/hud.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

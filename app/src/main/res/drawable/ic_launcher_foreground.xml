@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icono ESFshoot: mira futurista cian -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#00000000" android:strokeColor="#19E6FF" android:strokeWidth="4"
+        android:pathData="M54,54 m-26,0 a26,26 0 1,0 52,0 a26,26 0 1,0 -52,0" />
+    <path android:fillColor="#00000000" android:strokeColor="#7FF4FF" android:strokeWidth="2"
+        android:pathData="M54,54 m-16,0 a16,16 0 1,0 32,0 a16,16 0 1,0 -32,0" />
+    <path android:fillColor="#19E6FF" android:pathData="M52,18 h4 v16 h-4 z M52,74 h4 v16 h-4 z M18,52 h16 v4 h-16 z M74,52 h16 v4 h-16 z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M54,54 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
+    <path android:fillColor="#19E6FF" android:pathData="M30,30 l8,0 l0,3 l-5,0 l0,5 l-3,0 z M78,30 l-8,0 l0,3 l5,0 l0,5 l3,0 z M30,78 l8,0 l0,-3 l-5,0 l0,-5 l-3,0 z M78,78 l-8,0 l0,-3 l5,0 l0,-5 l3,0 z" />
+</vector>
