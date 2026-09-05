@@ -310,15 +310,16 @@ private fun CarouselBackdrop(wallpaperUri: String?, animated: Boolean) {
             )
         }
 
-        // Velos: arriba para la cabecera, abajo para el nombre y las cifras. En
-        // medio se aclara, que es donde estan las cartas y donde el fondo tiene
-        // que dejarse ver.
+        // Velo solo donde hay texto: arriba la cabecera, abajo el nombre y las
+        // cifras. En medio, donde estan las cartas, se aclara casi del todo
+        // para que el fondo del juego se vea de verdad y no solo se intuya.
         Box(
             Modifier.fillMaxSize().background(
                 Brush.verticalGradient(
-                    0f to theme.backgroundStops.first().copy(alpha = 0.62f),
-                    0.5f to theme.backgroundStops.first().copy(alpha = 0.38f),
-                    1f to theme.backgroundStops.first().copy(alpha = 0.92f),
+                    0f to theme.backgroundStops.first().copy(alpha = 0.50f),
+                    0.28f to theme.backgroundStops.first().copy(alpha = 0.08f),
+                    0.58f to theme.backgroundStops.first().copy(alpha = 0.08f),
+                    1f to theme.backgroundStops.first().copy(alpha = 0.68f),
                 )
             )
         )

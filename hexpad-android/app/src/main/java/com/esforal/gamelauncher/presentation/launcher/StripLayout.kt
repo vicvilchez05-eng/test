@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -54,7 +52,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -71,9 +68,8 @@ import com.esforal.gamelauncher.presentation.LauncherUiState
 import com.esforal.gamelauncher.presentation.background.AnimatedBackground
 import com.esforal.gamelauncher.presentation.common.DrawableImage
 import com.esforal.gamelauncher.presentation.common.LocalAppImageSource
-import com.esforal.gamelauncher.presentation.components.GlassPanel
+import com.esforal.gamelauncher.presentation.components.GhostButton
 import com.esforal.gamelauncher.presentation.components.PrimaryButton
-import com.esforal.gamelauncher.presentation.components.ThemedIconButton
 import com.esforal.gamelauncher.presentation.components.focusRing
 import com.esforal.gamelauncher.presentation.nowplaying.NowPlayingChip
 import com.esforal.gamelauncher.presentation.performance.PerformanceBar
@@ -153,23 +149,17 @@ internal fun StripLayout(
                 .padding(contentPadding)
                 .padding(horizontal = 18.dp, vertical = 10.dp),
         ) {
-            // Reparto explicito, y en este orden: primero lo que no cede -la
-            // zona baja, que lleva "Jugar"-, y las portadas se quedan con lo
-            // que sobre. Es la misma regla que en la disposicion de consola:
-            // en una Column que desborda el que se queda sin alto es el ultimo
-            // hijo, y ahi el ultimo es el boton de jugar.
-            val cardHeight = (maxHeight * BOTTOM_FRACTION)
-                .coerceIn(BOTTOM_HEIGHT_MIN, BOTTOM_HEIGHT_MAX)
+            // Reparto explicito: primero lo que no cede -la cabecera, el
+            // nombre y la fila con "Jugar"-, y las portadas se quedan con lo
+            // que sobre. Es la regla del proyecto: en una Column que desborda,
+            // el que se queda sin alto es el ultimo hijo, y ahi el ultimo son
+            // justamente los botones.
             val nowPlayingVisible = nowPlaying != null && !performanceExpanded
             val chromeHeight = STRIP_CHROME_HEIGHT +
                 if (nowPlayingVisible) NOW_PLAYING_BAND_HEIGHT else 0.dp
-            val tile = ((maxHeight - cardHeight - chromeHeight) / SELECTED_TILE_GROWTH)
+            val tile = ((maxHeight - chromeHeight) / SELECTED_TILE_GROWTH)
                 .coerceIn(TILE_SIZE_MIN, TILE_SIZE_MAX)
             val bigTile = tile * SELECTED_TILE_GROWTH
-
-            // Con la pantalla muy baja, "Continuar jugando" es lo primero que
-            // sobra: es un atajo, y la ficha con "Jugar" no lo es.
-            val showRecentPanel = maxHeight >= RECENT_PANEL_MIN_HEIGHT
 
             // Dentro de la Column el receptor de BoxWithConstraints queda
             // tapado por el de Column, asi que el alto libre se captura aqui.
@@ -273,7 +263,15 @@ internal fun StripLayout(
 
                         if (selectedPage != null) {
                             Spacer(Modifier.height(10.dp))
-                            // El nombre del elegido, como titulo de la pantalla.
+                            // El nombre del elegido, como titulo de la
+                            // pantalla, y debajo lo unico que se pulsa de
+                            // verdad aqui.
+                            //
+                            // No hay ficha con su portada y su nombre otra vez:
+                            // el icono esta arriba en la franja, encendido y
+                            // mas grande que los demas, y el nombre esta justo
+                            // aqui. Repetir los dos en una tarjeta gastaba un
+                            // cuarto de la pantalla en no decir nada nuevo.
                             Text(
                                 text = selectedPage.displayName,
                                 color = theme.textPrimary,
@@ -282,44 +280,46 @@ internal fun StripLayout(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                             )
+
+                            if (!selectedPage.isInstalled) {
+                                Spacer(Modifier.height(4.dp))
+                                // El aviso no cede nunca: sin el, "Jugar"
+                                // aparece apagado sin explicar por que.
+                                Text(
+                                    text = stringResource(R.string.carousel_not_installed),
+                                    color = theme.warn,
+                                    fontSize = 11.sp,
+                                    maxLines = 1,
+                                )
+                            }
+
+                            Spacer(Modifier.height(8.dp))
+
+                            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                PrimaryButton(
+                                    text = stringResource(R.string.action_play),
+                                    icon = Icons.Filled.PlayArrow,
+                                    onClick = { actions.onPlay(selectedPage) },
+                                    enabled = selectedPage.isInstalled,
+                                )
+                                GhostButton(
+                                    text = stringResource(R.string.action_options),
+                                    icon = Icons.Filled.MoreHoriz,
+                                    onClick = { actions.onOpenActions(selectedPage) },
+                                )
+                            }
                         }
 
                         Spacer(Modifier.weight(1f))
 
+                        // Banda propia al final. Si no suena nada no existe.
                         NowPlayingChip(
                             nowPlaying = nowPlaying.takeUnless { performanceExpanded },
                             onTogglePlayPause = actions.onTogglePlayPause,
                             onSkipToNext = actions.onSkipToNext,
                             showControls = false,
-                            modifier = Modifier
-                                .align(Alignment.CenterHorizontally)
-                                .padding(bottom = 8.dp),
+                            modifier = Modifier.align(Alignment.CenterHorizontally),
                         )
-
-                        if (selectedPage != null) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth().height(cardHeight),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            ) {
-                                CompactCard(
-                                    page = selectedPage,
-                                    onPlay = { actions.onPlay(selectedPage) },
-                                    onOpenActions = { actions.onOpenActions(selectedPage) },
-                                    modifier = Modifier
-                                        .weight(CARD_WEIGHT)
-                                        .fillMaxHeight(),
-                                )
-                                if (showRecentPanel) {
-                                    RecentPanel(
-                                        recent = recent,
-                                        onSelect = actions.onSelectPage,
-                                        modifier = Modifier
-                                            .weight(RECENT_WEIGHT)
-                                            .fillMaxHeight(),
-                                    )
-                                }
-                            }
-                        }
                     }
                 }
             }
@@ -381,12 +381,21 @@ private fun StripBackdrop(wallpaperUri: String?) {
             onState = { if (it is AsyncImagePainter.State.Error) failed = true },
             modifier = Modifier.fillMaxSize(),
         )
+        // Velo solo donde hay texto: arriba las estanterias y el reloj, abajo
+        // el nombre y los botones. En medio, donde estan las portadas, se
+        // aclara casi del todo para que el fondo del juego se vea de verdad.
+        //
+        // Antes era un velo parejo al 72-95 % y el fondo apenas se intuia. Lo
+        // que justificaba aquello -que una captura a plena intensidad compite
+        // con las portadas- se resuelve igual con los bordes encendidos y el
+        // apagado de las fichas no elegidas, que ya estaban.
         Box(
             modifier = Modifier.fillMaxSize().background(
                 Brush.verticalGradient(
-                    0f to theme.backgroundStops.first().copy(alpha = 0.72f),
-                    0.5f to theme.backgroundStops.first().copy(alpha = 0.82f),
-                    1f to theme.backgroundStops.first().copy(alpha = 0.95f),
+                    0f to theme.backgroundStops.first().copy(alpha = 0.50f),
+                    0.28f to theme.backgroundStops.first().copy(alpha = 0.08f),
+                    0.58f to theme.backgroundStops.first().copy(alpha = 0.08f),
+                    1f to theme.backgroundStops.first().copy(alpha = 0.68f),
                 )
             )
         )
@@ -637,169 +646,7 @@ private fun FunctionTile(
 
 // ---- Zona baja ------------------------------------------------------------------
 
-/** Portada pequena, nombre, paquete y "Jugar", en una sola fila. */
-@Composable
-private fun CompactCard(
-    page: GamePage,
-    onPlay: () -> Unit,
-    onOpenActions: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val theme = Theme.current
-    val images = LocalAppImageSource.current
-    var wallpaperFailed by remember(page.packageName, page.wallpaperUri) {
-        mutableStateOf(false)
-    }
-    val wallpaperUri = page.wallpaperUri
 
-    // Sin velo debajo y con texto denso encima: si se queda con la opacidad del
-    // tema, el nombre del juego se transparenta a traves de las cifras.
-    GlassPanel(modifier = modifier, backgroundAlpha = DENSE_PANEL_ALPHA) {
-        Row(
-            modifier = Modifier.fillMaxSize().padding(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(theme.surfaceElevated),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (wallpaperUri == null || wallpaperFailed) {
-                    DrawableImage(
-                        cacheKey = page.packageName + ":compact",
-                        drawable = images.icon(page.packageName),
-                        contentDescription = null,
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.fillMaxSize().padding(8.dp),
-                        maxSizePx = STRIP_ICON_MAX_PX,
-                    )
-                } else {
-                    AsyncImage(
-                        model = wallpaperUri,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        onState = {
-                            if (it is AsyncImagePainter.State.Error) wallpaperFailed = true
-                        },
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
-            }
-
-            Spacer(Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = page.displayName.uppercase(),
-                    color = theme.textPrimary,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                if (!page.isInstalled) {
-                    Spacer(Modifier.height(2.dp))
-                    // El aviso de "no instalado" no cede nunca: sin el, "Jugar"
-                    // aparece apagado sin explicar por que.
-                    Text(
-                        text = stringResource(R.string.carousel_not_installed),
-                        color = theme.warn,
-                        fontSize = 9.5.sp,
-                        maxLines = 1,
-                    )
-                }
-            }
-
-            Spacer(Modifier.width(10.dp))
-
-            PrimaryButton(
-                text = stringResource(R.string.action_play),
-                icon = Icons.Filled.PlayArrow,
-                onClick = onPlay,
-                enabled = page.isInstalled,
-            )
-            Spacer(Modifier.width(8.dp))
-            ThemedIconButton(
-                icon = Icons.Filled.MoreHoriz,
-                contentDescription = stringResource(R.string.action_options),
-                onClick = onOpenActions,
-            )
-        }
-    }
-}
-
-/** Lo ultimo jugado, en miniaturas. Pulsar una la elige. */
-@Composable
-private fun RecentPanel(
-    recent: List<GamePage>,
-    onSelect: (GamePage) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val theme = Theme.current
-    val images = LocalAppImageSource.current
-
-    GlassPanel(modifier = modifier, backgroundAlpha = DENSE_PANEL_ALPHA) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(10.dp),
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Text(
-                text = stringResource(R.string.shelf_recent).uppercase(),
-                color = theme.textDim,
-                fontSize = 8.5.sp,
-                fontFamily = FontFamily.Monospace,
-                letterSpacing = 1.2.sp,
-            )
-            Spacer(Modifier.height(6.dp))
-
-            if (recent.isEmpty()) {
-                Text(
-                    text = stringResource(R.string.strip_nothing_recent),
-                    color = theme.textDim,
-                    fontSize = 10.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            } else {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    recent.take(RECENT_THUMBNAILS).forEach { page ->
-                        val interactionSource = remember(page.packageName) {
-                            MutableInteractionSource()
-                        }
-                        val shape = RoundedCornerShape(6.dp)
-                        Box(
-                            modifier = Modifier
-                                .size(RECENT_THUMBNAIL_SIZE)
-                                .clip(shape)
-                                .background(theme.surfaceElevated)
-                                .border(theme.borderWidth, theme.surfaceBorder, shape)
-                                .focusRing(interactionSource, shape)
-                                .clickable(
-                                    interactionSource = interactionSource,
-                                    indication = null,
-                                    role = Role.Button,
-                                    onClick = { onSelect(page) },
-                                ),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            DrawableImage(
-                                cacheKey = page.packageName + ":recent",
-                                drawable = images.icon(page.packageName),
-                                contentDescription = page.displayName,
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier.fillMaxSize().padding(6.dp),
-                                maxSizePx = STRIP_ICON_MAX_PX,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 // ---- Medidas -------------------------------------------------------------------
 
@@ -812,10 +659,15 @@ private const val UNSELECTED_ALPHA = 0.78f
 private const val TILE_RESIZE_MILLIS = 180
 
 /**
- * Lo que ocupa la pantalla por fuera de la franja y de la zona baja: cabecera,
- * separaciones y el nombre del juego elegido.
+ * Lo que ocupa la pantalla por fuera de la franja y no puede encogerse: la
+ * cabecera, el nombre del elegido, la fila de botones y las separaciones. Lo
+ * que quede es de las portadas.
+ *
+ * Bajo de 110 a esto al quitar la barra inferior: aquella reservaba entre 84 y
+ * 118 dp para repetir la portada y el nombre que ya estaban en pantalla. Con la
+ * pantalla apretada, las portadas pasan de 74 a 97 dp de lado.
  */
-private val STRIP_CHROME_HEIGHT = 110.dp
+private val STRIP_CHROME_HEIGHT = 164.dp
 
 /**
  * Lo que ocupa la banda de "sonando ahora" cuando hay algo sonando.
@@ -834,8 +686,13 @@ private val NOW_PLAYING_BAND_HEIGHT = 48.dp
  */
 private val TILE_SIZE_MIN = 64.dp
 
-/** Tope del icono: mas grande no cabe con la zona baja en un movil. */
-private val TILE_SIZE_MAX = 132.dp
+/**
+  * Tope del icono. Sube de 132 a esto porque el alto que liberaba la barra
+  * inferior tiene que ir a algun sitio, y las portadas son el sitio: en una
+  * pantalla holgada la franja crece hasta aqui en vez de dejar un hueco muerto
+  * debajo de los botones.
+  */
+private val TILE_SIZE_MAX = 168.dp
 
 private val TILE_GAP = 8.dp
 
@@ -847,31 +704,10 @@ private val FUNCTION_GAP = 12.dp
 
 private const val FUNCTION_ICON_FRACTION = 0.32f
 
-/** Parte del alto que se lleva la zona baja, y sus topes. */
-private const val BOTTOM_FRACTION = 0.26f
-private val BOTTOM_HEIGHT_MIN = 84.dp
-private val BOTTOM_HEIGHT_MAX = 118.dp
-
-/** Reparto de la zona baja entre la ficha y las miniaturas. */
-private const val CARD_WEIGHT = 2f
-private const val RECENT_WEIGHT = 1f
-
-private val RECENT_THUMBNAIL_SIZE = 38.dp
-private const val RECENT_THUMBNAILS = 4
-
-/** Alto util por debajo del cual "Continuar jugando" deja sitio a la ficha. */
-private val RECENT_PANEL_MIN_HEIGHT = 320.dp
-
 private val STRIP_HEADER_HEIGHT = 52.dp
 
 private const val STRIP_ICON_FRACTION = 0.42f
 private const val STRIP_ICON_MAX_PX = 160
-
-/**
- * Opacidad de los paneles de la zona baja. La del tema deja intuir el fondo
- * animado, pero estos llevan texto denso y no tienen velo debajo.
- */
-private const val DENSE_PANEL_ALPHA = 0.95f
 
 private const val STRIP_CLOCK_REFRESH_MILLIS = 30_000L
 

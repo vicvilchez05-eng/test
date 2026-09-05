@@ -18,7 +18,6 @@
 
     <string name="shelf_all">Todos</string>
     <string name="shelf_recent">Recientes</string>
-    <string name="strip_nothing_recent">Nada jugado aún</string>
 
     <string name="carousel_last_played">Última vez</string>
     <string name="carousel_played">Jugado</string>

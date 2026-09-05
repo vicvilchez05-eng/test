@@ -19,7 +19,6 @@
     <!-- Estanterias de la disposicion de franja. -->
     <string name="shelf_all">All</string>
     <string name="shelf_recent">Recent</string>
-    <string name="strip_nothing_recent">Nothing played yet</string>
 
     <!-- Datos de la partida bajo el carrusel. -->
     <string name="carousel_last_played">Last played</string>
