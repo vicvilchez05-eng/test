@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#F0453A" android:pathData="M27,31h5v5h-5z M32,31h5v5h-5z M37,31h5v5h-5z M42,31h5v5h-5z M47,31h5v5h-5z M62,31h5v5h-5z M67,31h5v5h-5z M72,31h5v5h-5z M77,31h5v5h-5z M27,36h5v5h-5z M57,36h5v5h-5z M27,41h5v5h-5z M57,41h5v5h-5z M27,46h5v5h-5z M32,46h5v5h-5z M37,46h5v5h-5z M42,46h5v5h-5z M62,46h5v5h-5z M67,46h5v5h-5z M72,46h5v5h-5z M27,51h5v5h-5z M77,51h5v5h-5z M27,56h5v5h-5z M77,56h5v5h-5z M27,61h5v5h-5z M32,61h5v5h-5z M37,61h5v5h-5z M42,61h5v5h-5z M47,61h5v5h-5z M57,61h5v5h-5z M62,61h5v5h-5z M67,61h5v5h-5z M72,61h5v5h-5z" />
+    <path android:fillColor="#35D6FF" android:pathData="M27,71h5v5h-5z M32,71h5v5h-5z M37,71h5v5h-5z M42,71h5v5h-5z M47,71h5v5h-5z M52,71h5v5h-5z M57,71h5v5h-5z M62,71h5v5h-5z M67,71h5v5h-5z M72,71h5v5h-5z M77,71h5v5h-5z" />
+</vector>

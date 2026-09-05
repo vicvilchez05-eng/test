@@ -12,4 +12,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "ESFIGHTERS"
-include(":app")
+include(":app", ":app3d")

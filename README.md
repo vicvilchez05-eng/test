@@ -24,9 +24,10 @@ Los sprites, los escenarios y los sonidos se generan por código en un canvas de
 
 ### APK para Android (uso personal)
 
-La carpeta `android/` contiene una app mínima que muestra el juego a pantalla completa, sin internet.
-Cada vez que cambia el juego o la app, GitHub Actions compila el APK y lo deja en la sección
-**Releases** del repositorio, etiqueta `apk-latest`, como `ESFIGHTERS.apk`.
+La carpeta `android/` contiene dos apps mínimas que muestran cada juego a pantalla completa, sin internet:
+`app` (ESFIGHTERS, 2D) y `app3d` (ESFIGHTERS 3D). Cada vez que cambia un juego o la app, GitHub Actions
+compila los APK y los deja en la sección **Releases** del repositorio, etiqueta `apk-latest`,
+como `ESFIGHTERS.apk` y `ESFIGHTERS-3D.apk`.
 
 Para instalarlo: descarga el archivo en el celular, ábrelo y acepta "instalar apps de origen desconocido"
 la primera vez. Va firmado con una clave de depuración, suficiente para uso personal; no sirve para Google Play.

@@ -1,5 +1,5 @@
-# Compila el APK de ESFIGHTERS en cada cambio del juego o del proyecto Android
-# y lo deja para descargar en la sección "Releases" del repositorio (etiqueta apk-latest).
+# Compila los APK de ESFIGHTERS y ESFIGHTERS 3D en cada cambio de los juegos o del proyecto Android
+# y los deja para descargar en la sección "Releases" del repositorio (etiqueta apk-latest).
 name: APK de ESFIGHTERS
 
 on:
@@ -7,6 +7,7 @@ on:
     paths:
       - "android/**"
       - "esfighters/**"
+      - "esfighters3d/**"
       - ".github/workflows/android-apk.yml"
   workflow_dispatch:
 
@@ -15,7 +16,7 @@ permissions:
 
 jobs:
   apk:
-    name: Compilar APK
+    name: Compilar APKs
     runs-on: ubuntu-latest
     steps:
       - name: Descargar el repositorio
@@ -41,26 +42,30 @@ jobs:
         working-directory: android
         run: gradle assembleDebug --no-daemon --console=plain
 
-      - name: Preparar el archivo
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk ESFIGHTERS.apk
+      - name: Preparar los archivos
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk ESFIGHTERS.apk
+          cp android/app3d/build/outputs/apk/debug/app3d-debug.apk ESFIGHTERS-3D.apk
 
-      - name: Guardar el APK como artefacto del flujo
+      - name: Guardar los APK como artefacto del flujo
         uses: actions/upload-artifact@v4
         with:
           name: ESFIGHTERS-apk
-          path: ESFIGHTERS.apk
+          path: |
+            ESFIGHTERS.apk
+            ESFIGHTERS-3D.apk
 
-      - name: Publicar el APK en Releases (etiqueta apk-latest)
+      - name: Publicar los APK en Releases (etiqueta apk-latest)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           if ! gh release view apk-latest --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh release create apk-latest ESFIGHTERS.apk \
+            gh release create apk-latest ESFIGHTERS.apk ESFIGHTERS-3D.apk \
               --repo "$GITHUB_REPOSITORY" \
               --target "$GITHUB_SHA" \
               --title "ESFIGHTERS APK" \
-              --notes "APK de uso personal compilado automáticamente. Descarga ESFIGHTERS.apk e instálalo en tu Android (activa 'instalar apps de origen desconocido' la primera vez)."
+              --notes "APK de uso personal compilados automáticamente. ESFIGHTERS.apk es el juego 2D pixel art y ESFIGHTERS-3D.apk el juego 3D. Instálalos en tu Android (activa 'instalar apps de origen desconocido' la primera vez)."
           else
-            gh release upload apk-latest ESFIGHTERS.apk --clobber --repo "$GITHUB_REPOSITORY"
-            gh release edit apk-latest --repo "$GITHUB_REPOSITORY" --notes "APK de uso personal compilado automáticamente el $(date -u +%Y-%m-%d\ %H:%M) UTC desde el commit ${GITHUB_SHA::7}. Descarga ESFIGHTERS.apk e instálalo en tu Android (activa 'instalar apps de origen desconocido' la primera vez)."
+            gh release upload apk-latest ESFIGHTERS.apk ESFIGHTERS-3D.apk --clobber --repo "$GITHUB_REPOSITORY"
+            gh release edit apk-latest --repo "$GITHUB_REPOSITORY" --notes "APK de uso personal compilado automáticamente el $(date -u +%Y-%m-%d\ %H:%M) UTC desde el commit ${GITHUB_SHA::7}. ESFIGHTERS.apk es el juego 2D pixel art y ESFIGHTERS-3D.apk el juego 3D. Instálalos en tu Android (activa 'instalar apps de origen desconocido' la primera vez)."
           fi
