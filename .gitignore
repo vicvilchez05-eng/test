@@ -21,3 +21,6 @@ build/
 # Firmas
 *.jks
 *.keystore
+
+# Kotlin 2.x (caché de sesión)
+.kotlin/
