@@ -54,11 +54,20 @@ ficheros.
 | `domain/model/HomeLayout.kt` | Dos valores más en el enum, con su documentación |
 | `presentation/launcher/LauncherScreen.kt` | Dos ramas más en el `when` que reparte |
 | `presentation/settings/SettingsContent.kt` | Dos tarjetas más en la sección de disposición |
-| `app/build.gradle.kts` | `versionCode` 21 → 22 y `versionName` 0.21 → 0.22 |
+| `app/build.gradle.kts` | `versionCode` y `versionName`, uno por APK entregado |
+| `MainActivity.kt` | Pantalla completa: se ocultan las barras del sistema |
 
 La subida de versión no es un extra: es la regla del propio proyecto (§3.bis del
 handoff). Dos APK con la misma versión son indistinguibles una vez instalados, y
 eso ya costó una vuelta entera.
+
+La pantalla completa vive en la Activity y no en las disposiciones porque vale
+para las cuatro. `enableEdgeToEdge` ya dejaba pasar el fondo por debajo de las
+barras, pero la hora y la barra de gestos seguían encima; ahora se ocultan con
+`WindowInsetsControllerCompat`, en modo transitorio —deslizar desde un borde las
+trae un momento y se van solas—. Se vuelven a ocultar cada vez que la ventana
+recupera el foco: al volver de un juego reaparecen, y sin eso el launcher solo
+se vería a pantalla completa en el primer arranque.
 
 Los tres se entregan **completos**, no como parche: se copian encima de los del
 proyecto. Están tomados de la copia del proyecto que hay en Drive y verificados
