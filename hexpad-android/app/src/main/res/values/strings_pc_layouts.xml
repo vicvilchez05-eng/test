@@ -14,21 +14,12 @@
     <string name="settings_layout_carousel">Carousel</string>
     <string name="settings_layout_carousel_hint">One big cover in the middle and the rest alongside, over the game wallpaper. From Hexpad for Windows.</string>
     <string name="settings_layout_strip">Strip</string>
-    <string name="settings_layout_strip_hint">A row of large icons up top, games first and shortcuts after, with a compact card below. From Hexpad for Windows.</string>
+    <string name="settings_layout_strip_hint">A row of large icons up top, games first and shortcuts after. From Hexpad for Windows.</string>
 
     <!-- Estanterias de la disposicion de franja. -->
     <string name="shelf_all">All</string>
     <string name="shelf_recent">Recent</string>
 
-    <!-- Datos de la partida bajo el carrusel. -->
-    <string name="carousel_last_played">Last played</string>
-    <string name="carousel_played">Played</string>
-    <string name="carousel_state">State</string>
-    <string name="carousel_installed">Installed</string>
     <string name="carousel_not_installed">Not installed</string>
-    <!-- Se ensena en lugar de un cero: sin acceso al uso no es que no haya
-         jugado, es que no se puede saber. -->
-    <string name="carousel_no_usage_data">No usage access</string>
-
 
 </resources>

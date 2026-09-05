@@ -54,7 +54,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -66,12 +65,9 @@ import com.esforal.gamelauncher.R
 import com.esforal.gamelauncher.domain.model.DeviceSnapshot
 import com.esforal.gamelauncher.domain.model.GamePage
 import com.esforal.gamelauncher.domain.model.NowPlaying
-import com.esforal.gamelauncher.domain.model.PlayerStats
 import com.esforal.gamelauncher.presentation.LauncherUiState
 import com.esforal.gamelauncher.presentation.background.AnimatedBackground
 import com.esforal.gamelauncher.presentation.common.DrawableImage
-import com.esforal.gamelauncher.presentation.common.formatLastPlayed
-import com.esforal.gamelauncher.presentation.common.formatPlayTime
 import com.esforal.gamelauncher.presentation.common.LocalAppImageSource
 import com.esforal.gamelauncher.presentation.components.GhostButton
 import com.esforal.gamelauncher.presentation.components.GlassPanel
@@ -148,36 +144,9 @@ internal fun CarouselLayout(
                 .padding(contentPadding)
                 .padding(horizontal = 18.dp, vertical = 10.dp),
         ) {
-            // El alto es el recurso escaso y las cartas son lo unico que puede
-            // ceder: la cabecera lleva los mandos y la fila de abajo lleva
-            // "Jugar". Se reparte explicitamente, que es la leccion de §3.bis
-            // del handoff —lo que absorbe todo el ajuste es lo que desaparece—.
-            val nowPlayingVisible = nowPlaying != null && !performanceExpanded
-            val fixedHeight = CAROUSEL_FIXED_HEIGHT +
-                if (nowPlayingVisible) NOW_PLAYING_BAND_HEIGHT else 0.dp
-            val cardHeight = (maxHeight - fixedHeight)
-                .coerceIn(CARD_HEIGHT_MIN, CARD_HEIGHT_MAX)
-            val cardWidth = cardHeight * COVER_RATIO
-            val smallHeight = cardHeight * UNSELECTED_SCALE
-            val smallWidth = smallHeight * COVER_RATIO
-
-            // La carta elegida queda centrada: el relleno lateral es lo que
-            // sobra a cada lado de una carta grande, y la fila se desplaza a
-            // su inicio. Es el mismo truco que en el escritorio.
-            val sidePadding = ((maxWidth - cardWidth) / 2).coerceAtLeast(0.dp)
-
-            // Por debajo de este alto los datos de la partida sobran antes que
-            // el nombre: son cuatro cifras que el usuario puede mirar en el
-            // perfil, y el nombre es lo que dice que juego esta elegido.
-            val showData = maxHeight >= DATA_ROW_MIN_HEIGHT
-
             // Dentro de la Column el receptor de BoxWithConstraints queda
             // tapado por el de Column, asi que el alto libre se captura aqui.
             val panelMaxHeight = maxHeight - HEADER_HEIGHT
-
-            LaunchedEffect(index, cardWidth) {
-                if (index >= 0) row.animateScrollToItem(index, 0)
-            }
 
             Column(modifier = Modifier.fillMaxSize()) {
 
@@ -190,33 +159,54 @@ internal fun CarouselLayout(
                     maxPanelHeight = panelMaxHeight,
                 )
 
-                Spacer(Modifier.weight(1f))
+                // El carrusel se queda con lo que sobre y la carta se mide
+                // contra ese hueco.
+                //
+                // Antes el alto de la carta salia de un presupuesto fijo y el
+                // resto lo repartian dos espaciadores con peso. Eran dos
+                // cuentas que no cuadraban: en cuanto la carta topaba con su
+                // tope, o el presupuesto no acertaba, quedaba pantalla vacia
+                // abajo y el contenido apelotonado arriba. Con weight hay una
+                // sola cuenta y la hace Compose.
+                //
+                // De paso desaparece la reserva de la banda de "sonando ahora":
+                // si aparece, sale de este hueco sola.
+                BoxWithConstraints(
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    val cardHeight = (maxHeight - CARD_HALO_SPACE)
+                        .coerceIn(CARD_HEIGHT_MIN, CARD_HEIGHT_MAX)
+                    val cardWidth = cardHeight * COVER_RATIO
+                    val smallHeight = cardHeight * UNSELECTED_SCALE
+                    val smallWidth = smallHeight * COVER_RATIO
 
-                when {
-                    pages == null -> Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center,
-                    ) { CircularProgressIndicator(color = theme.primary) }
+                    // La carta elegida queda centrada: el relleno lateral es lo
+                    // que sobra a cada lado de una carta grande, y la fila se
+                    // desplaza a su inicio. Es el mismo truco que en el
+                    // escritorio.
+                    val sidePadding = ((maxWidth - cardWidth) / 2).coerceAtLeast(0.dp)
 
-                    pages.isEmpty() -> Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center,
-                    ) { EmptyState(onAddGame = actions.onAddGame) }
+                    LaunchedEffect(index, cardWidth) {
+                        if (index >= 0) row.animateScrollToItem(index, 0)
+                    }
 
-                    else -> {
-                        LazyRow(
+                    when {
+                        pages == null -> CircularProgressIndicator(color = theme.primary)
+
+                        pages.isEmpty() -> EmptyState(onAddGame = actions.onAddGame)
+
+                        else -> LazyRow(
                             state = row,
                             contentPadding = PaddingValues(horizontal = sidePadding),
                             horizontalArrangement = Arrangement.spacedBy(CARD_GAP),
                             verticalAlignment = Alignment.CenterVertically,
                             // Igual que en el escritorio: el centro lo decide la
-                            // seleccion, no el dedo. Lo que alli era la rueda del
-                            // raton aqui es el arrastre horizontal, que mueve la
-                            // seleccion de una en una unas lineas mas abajo.
+                            // seleccion, no el dedo. Lo que alli era la rueda
+                            // del raton aqui es el arrastre horizontal.
                             userScrollEnabled = false,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(cardHeight + CARD_HALO_SPACE)
                                 .selectionDrag(
                                     pages = pages,
                                     index = index,
@@ -232,18 +222,13 @@ internal fun CarouselLayout(
                                     smallWidth = smallWidth,
                                     smallHeight = smallHeight,
                                     onSelect = { actions.onSelectPage(page) },
-                                    onPlay = { actions.onPlay(page) },
                                 )
                             }
                         }
                     }
                 }
 
-                Spacer(Modifier.height(12.dp))
-
-                // Sonando ahora en su propia banda, como en la disposicion de
-                // consola: si no suena nada la banda no existe, y no hay
-                // ninguna constante de alto que mantener sincronizada.
+                // Banda propia: si no suena nada, no existe.
                 NowPlayingChip(
                     nowPlaying = nowPlaying.takeUnless { performanceExpanded },
                     onTogglePlayPause = actions.onTogglePlayPause,
@@ -253,16 +238,13 @@ internal fun CarouselLayout(
                 )
 
                 if (selectedPage != null) {
+                    Spacer(Modifier.height(10.dp))
                     SelectedGameData(
                         page = selectedPage,
-                        playerStats = state.playerStats,
-                        showData = showData,
                         onPlay = { actions.onPlay(selectedPage) },
                         onOpenActions = { actions.onOpenActions(selectedPage) },
                     )
                 }
-
-                Spacer(Modifier.weight(1f))
             }
         }
     }
@@ -462,7 +444,6 @@ private fun CarouselCard(
     smallWidth: Dp,
     smallHeight: Dp,
     onSelect: () -> Unit,
-    onPlay: () -> Unit,
 ) {
     val theme = Theme.current
     val images = LocalAppImageSource.current
@@ -578,7 +559,7 @@ private fun CarouselCard(
 // ---- Datos del elegido --------------------------------------------------------
 
 /**
- * Nombre del juego y sus datos de partida, bajo el carrusel.
+ * Nombre del juego y lo unico que se pulsa de verdad aqui.
  *
  * El nombre comparte fila con los botones, que es la correccion que ya se hizo
  * en la disposicion de consola: encima costaba alto que salia de las cartas, y
@@ -586,25 +567,20 @@ private fun CarouselCard(
  * `weight(fill = false)` para que coja lo que necesita y ni un dp mas; con
  * ancho fijo empujaria los botones fuera de pantalla en un movil estrecho.
  *
- * Los datos son los que Android publica de verdad. El escritorio ensena aqui la
- * tienda de procedencia y el veredicto frente a los requisitos del juego, y
- * ninguna de las dos cosas existe en el movil: no hay tiendas —el juego es una
- * app instalada— ni fichas con requisitos que comparar. En su lugar van la
- * ultima vez, el tiempo jugado y si sigue instalado.
+ * Aqui iba tambien una fila con la ultima vez, el tiempo jugado y si el juego
+ * sigue instalado. Se quito por lo mismo que la barra inferior de la franja:
+ * son cifras que se miran de vez en cuando, estan enteras en el perfil, y el
+ * alto que ocupaban vale mas como portada. Lo unico que sobrevive de aquello es
+ * el aviso de "no instalado", que no es un dato sino la explicacion de por que
+ * "Jugar" esta apagado.
  */
 @Composable
 private fun SelectedGameData(
     page: GamePage,
-    playerStats: PlayerStats?,
-    showData: Boolean,
     onPlay: () -> Unit,
     onOpenActions: () -> Unit,
 ) {
     val theme = Theme.current
-    val playtime = playerStats
-        ?.takeIf { it.available }
-        ?.recentlyPlayed
-        ?.firstOrNull { it.packageName == page.packageName }
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -638,64 +614,15 @@ private fun SelectedGameData(
             )
         }
 
-        if (showData) {
-            Spacer(Modifier.height(8.dp))
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(28.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                // Los dos formateadores son los del propio launcher: el de la
-                // ultima vez lo resuelve DateUtils, que ya viene traducido con
-                // el sistema, y el del tiempo jugado usa las mismas cadenas que
-                // el perfil. Escribir aqui otros dos daria dos formatos
-                // distintos para el mismo dato en dos pantallas.
-                DataPoint(
-                    label = stringResource(R.string.carousel_last_played),
-                    value = playtime
-                        ?.let { formatLastPlayed(it.lastPlayedEpochMillis) }
-                        ?: stringResource(R.string.carousel_no_usage_data),
-                )
-                DataPoint(
-                    label = stringResource(R.string.carousel_played),
-                    value = playtime
-                        ?.let { formatPlayTime(it.playTimeMillis) }
-                        ?: stringResource(R.string.carousel_no_usage_data),
-                )
-                DataPoint(
-                    label = stringResource(R.string.carousel_state),
-                    value = if (page.isInstalled) {
-                        stringResource(R.string.carousel_installed)
-                    } else {
-                        stringResource(R.string.carousel_not_installed)
-                    },
-                    color = if (page.isInstalled) null else theme.warn,
-                )
-            }
+        if (!page.isInstalled) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = stringResource(R.string.carousel_not_installed),
+                color = theme.warn,
+                fontSize = 11.sp,
+                maxLines = 1,
+            )
         }
-    }
-}
-
-@Composable
-private fun DataPoint(label: String, value: String, color: Color? = null) {
-    val theme = Theme.current
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = label.uppercase(),
-            color = theme.textDim,
-            fontSize = 8.5.sp,
-            fontFamily = FontFamily.Monospace,
-            letterSpacing = 1.2.sp,
-            maxLines = 1,
-        )
-        Spacer(Modifier.height(2.dp))
-        Text(
-            text = value,
-            color = color ?: theme.textSecondary,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Medium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
     }
 }
 
@@ -708,23 +635,6 @@ private const val COVER_RATIO = 2f / 3f
 private const val UNSELECTED_SCALE = 0.74f
 
 private const val CARD_RESIZE_MILLIS = 220
-
-/**
- * Lo que ocupa la pantalla por fuera del carrusel y no puede encogerse: la
- * cabecera, la fila del nombre con sus botones, la de los datos y las
- * separaciones. Lo que quede es de las cartas.
- */
-private val CAROUSEL_FIXED_HEIGHT = 156.dp
-
-/**
- * Lo que ocupa la banda de "sonando ahora" cuando hay algo sonando.
- *
- * Entra en la cuenta del alto en vez de aparecer y empujar: es una banda mas de
- * la columna, y sin reservarla el ultimo hijo -la fila con "Jugar"- era el que
- * se quedaba sin sitio en cuanto el movil reproducia musica. Con la pantalla
- * apretada quedaban 2 dp de holgura, asi que no era un caso remoto.
- */
-private val NOW_PLAYING_BAND_HEIGHT = 48.dp
 
 
 /**
@@ -740,12 +650,6 @@ private val CARD_HEIGHT_MAX = 300.dp
 /** Hueco entre cartas, y el aire que necesita el halo de la elegida. */
 private val CARD_GAP = 16.dp
 private val CARD_HALO_SPACE = 20.dp
-
-/**
- * Alto util por debajo del cual los datos de la partida se retiran. Se miran
- * de vez en cuando y estan tambien en el perfil; el nombre y "Jugar", no.
- */
-private val DATA_ROW_MIN_HEIGHT = 340.dp
 
 private val HEADER_HEIGHT = 52.dp
 private val BRAND_MARK_SIZE = 34.dp

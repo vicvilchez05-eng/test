@@ -14,17 +14,11 @@
     <string name="settings_layout_carousel">Rejilla</string>
     <string name="settings_layout_carousel_hint">Una portada grande en el centro y las demás al lado, sobre el fondo del juego. Viene de Hexpad para Windows.</string>
     <string name="settings_layout_strip">Franja</string>
-    <string name="settings_layout_strip_hint">Una fila de iconos grandes arriba, los juegos primero y los atajos después, con una ficha compacta debajo. Viene de Hexpad para Windows.</string>
+    <string name="settings_layout_strip_hint">Una fila de iconos grandes arriba, los juegos primero y los atajos después. Viene de Hexpad para Windows.</string>
 
     <string name="shelf_all">Todos</string>
     <string name="shelf_recent">Recientes</string>
 
-    <string name="carousel_last_played">Última vez</string>
-    <string name="carousel_played">Jugado</string>
-    <string name="carousel_state">Estado</string>
-    <string name="carousel_installed">Instalado</string>
     <string name="carousel_not_installed">No instalado</string>
-    <string name="carousel_no_usage_data">Sin acceso al uso</string>
-
 
 </resources>
