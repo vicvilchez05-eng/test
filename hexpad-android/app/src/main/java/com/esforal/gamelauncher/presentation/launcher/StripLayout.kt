@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -159,7 +160,10 @@ internal fun StripLayout(
             // hijo, y ahi el ultimo es el boton de jugar.
             val cardHeight = (maxHeight * BOTTOM_FRACTION)
                 .coerceIn(BOTTOM_HEIGHT_MIN, BOTTOM_HEIGHT_MAX)
-            val tile = ((maxHeight - cardHeight - STRIP_CHROME_HEIGHT) / SELECTED_TILE_GROWTH)
+            val nowPlayingVisible = nowPlaying != null && !performanceExpanded
+            val chromeHeight = STRIP_CHROME_HEIGHT +
+                if (nowPlayingVisible) NOW_PLAYING_BAND_HEIGHT else 0.dp
+            val tile = ((maxHeight - cardHeight - chromeHeight) / SELECTED_TILE_GROWTH)
                 .coerceIn(TILE_SIZE_MIN, TILE_SIZE_MAX)
             val bigTile = tile * SELECTED_TILE_GROWTH
 
@@ -412,7 +416,12 @@ private fun StripHeader(
     }
 
     Row(
-        modifier = Modifier.fillMaxWidth().height(STRIP_HEADER_HEIGHT),
+        // heightIn y no height: la barra de rendimiento pide 48 dp de
+        // objetivo tactil, y con 34 fijos sus cifras salian cortadas por
+        // arriba y por abajo. El alto que se le reserva al reparto sube
+        // con ella, o lo que gana la cabecera se lo quita a la fila de
+        // abajo, que es la que lleva "Jugar".
+        modifier = Modifier.fillMaxWidth().heightIn(min = STRIP_HEADER_HEIGHT),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         ShelfTab(
@@ -691,16 +700,6 @@ private fun CompactCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = page.packageName,
-                    color = theme.textDim,
-                    fontSize = 9.5.sp,
-                    fontFamily = FontFamily.Monospace,
-                    letterSpacing = 0.6.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
                 if (!page.isInstalled) {
                     Spacer(Modifier.height(2.dp))
                     // El aviso de "no instalado" no cede nunca: sin el, "Jugar"
@@ -816,7 +815,18 @@ private const val TILE_RESIZE_MILLIS = 180
  * Lo que ocupa la pantalla por fuera de la franja y de la zona baja: cabecera,
  * separaciones y el nombre del juego elegido.
  */
-private val STRIP_CHROME_HEIGHT = 92.dp
+private val STRIP_CHROME_HEIGHT = 110.dp
+
+/**
+ * Lo que ocupa la banda de "sonando ahora" cuando hay algo sonando.
+ *
+ * Entra en la cuenta del alto en vez de aparecer y empujar: es una banda mas de
+ * la columna, y sin reservarla el ultimo hijo -la fila con "Jugar"- era el que
+ * se quedaba sin sitio en cuanto el movil reproducia musica. Con la pantalla
+ * apretada quedaban 2 dp de holgura, asi que no era un caso remoto.
+ */
+private val NOW_PLAYING_BAND_HEIGHT = 48.dp
+
 
 /**
  * Por debajo de este lado un icono deja de ser una portada y pasa a ser un
@@ -852,7 +862,7 @@ private const val RECENT_THUMBNAILS = 4
 /** Alto util por debajo del cual "Continuar jugando" deja sitio a la ficha. */
 private val RECENT_PANEL_MIN_HEIGHT = 320.dp
 
-private val STRIP_HEADER_HEIGHT = 34.dp
+private val STRIP_HEADER_HEIGHT = 52.dp
 
 private const val STRIP_ICON_FRACTION = 0.42f
 private const val STRIP_ICON_MAX_PX = 160

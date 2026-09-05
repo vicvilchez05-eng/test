@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -55,7 +56,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -152,7 +152,10 @@ internal fun CarouselLayout(
             // ceder: la cabecera lleva los mandos y la fila de abajo lleva
             // "Jugar". Se reparte explicitamente, que es la leccion de §3.bis
             // del handoff —lo que absorbe todo el ajuste es lo que desaparece—.
-            val cardHeight = (maxHeight - CAROUSEL_FIXED_HEIGHT)
+            val nowPlayingVisible = nowPlaying != null && !performanceExpanded
+            val fixedHeight = CAROUSEL_FIXED_HEIGHT +
+                if (nowPlayingVisible) NOW_PLAYING_BAND_HEIGHT else 0.dp
+            val cardHeight = (maxHeight - fixedHeight)
                 .coerceIn(CARD_HEIGHT_MIN, CARD_HEIGHT_MAX)
             val cardWidth = cardHeight * COVER_RATIO
             val smallHeight = cardHeight * UNSELECTED_SCALE
@@ -347,7 +350,10 @@ private fun CarouselHeader(
     }
 
     Row(
-        modifier = Modifier.fillMaxWidth().height(HEADER_HEIGHT),
+        // heightIn y no height: la barra de rendimiento pide 48 dp de
+        // objetivo tactil, y con un alto fijo por debajo de eso sus cifras
+        // se cortaban por arriba y por abajo.
+        modifier = Modifier.fillMaxWidth().heightIn(min = HEADER_HEIGHT),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
@@ -528,61 +534,42 @@ private fun CarouselCard(
             )
         }
 
-        // Velo inferior para el texto, mas alto en la elegida porque lleva mas.
-        Box(
-            Modifier.fillMaxSize().background(
-                Brush.verticalGradient(
-                    0f to Color.Transparent,
-                    (if (selected) 0.45f else 0.6f) to Color.Transparent,
-                    1f to Color.Black.copy(alpha = 0.88f),
+        // La carta elegida no lleva nada encima: su nombre va debajo del
+        // carrusel en grande y "Jugar" esta justo ahi al lado. Repetirlos aqui
+        // tapaba la ilustracion en la unica carta que se ve entera, que es
+        // precisamente lo que un carrusel viene a ensenar.
+        if (!selected) {
+            // Velo inferior para que el nombre se lea sobre la ilustracion, y
+            // un apagado general encima: con varias portadas a todo color
+            // compitiendo, la elegida deja de destacar aunque tenga borde.
+            Box(
+                Modifier.fillMaxSize().background(
+                    Brush.verticalGradient(
+                        0f to Color.Transparent,
+                        0.6f to Color.Transparent,
+                        1f to Color.Black.copy(alpha = 0.88f),
+                    )
                 )
             )
-        )
-
-        if (!selected) {
             Box(
                 Modifier.fillMaxSize().background(
                     theme.backgroundStops.first().copy(alpha = 0.45f)
                 )
             )
-        }
-
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 12.dp),
-            horizontalAlignment = if (selected) {
-                Alignment.CenterHorizontally
-            } else {
-                Alignment.Start
-            },
-        ) {
+            // Dos lineas: sin el nombre de paquete debajo sobra sitio, y un
+            // titulo de dos palabras cortado en la primera no identifica nada.
             Text(
                 text = page.displayName.uppercase(),
                 color = Color.White,
-                fontSize = if (selected) 15.sp else 12.sp,
+                fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                textAlign = if (selected) TextAlign.Center else TextAlign.Start,
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 10.dp),
             )
-            Text(
-                text = page.packageName,
-                color = Color.White.copy(alpha = 0.78f),
-                fontSize = if (selected) 10.5.sp else 9.5.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            if (selected) {
-                Spacer(Modifier.height(10.dp))
-                PrimaryButton(
-                    text = stringResource(R.string.action_play),
-                    icon = Icons.Filled.PlayArrow,
-                    onClick = onPlay,
-                    enabled = page.isInstalled,
-                )
-            }
         }
     }
 }
@@ -726,7 +713,18 @@ private const val CARD_RESIZE_MILLIS = 220
  * cabecera, la fila del nombre con sus botones, la de los datos y las
  * separaciones. Lo que quede es de las cartas.
  */
-private val CAROUSEL_FIXED_HEIGHT = 148.dp
+private val CAROUSEL_FIXED_HEIGHT = 156.dp
+
+/**
+ * Lo que ocupa la banda de "sonando ahora" cuando hay algo sonando.
+ *
+ * Entra en la cuenta del alto en vez de aparecer y empujar: es una banda mas de
+ * la columna, y sin reservarla el ultimo hijo -la fila con "Jugar"- era el que
+ * se quedaba sin sitio en cuanto el movil reproducia musica. Con la pantalla
+ * apretada quedaban 2 dp de holgura, asi que no era un caso remoto.
+ */
+private val NOW_PLAYING_BAND_HEIGHT = 48.dp
+
 
 /**
  * Por debajo de este lado la carta deja de leerse como una portada. Es
@@ -748,7 +746,7 @@ private val CARD_HALO_SPACE = 20.dp
  */
 private val DATA_ROW_MIN_HEIGHT = 340.dp
 
-private val HEADER_HEIGHT = 44.dp
+private val HEADER_HEIGHT = 52.dp
 private val BRAND_MARK_SIZE = 34.dp
 private val BRAND_ICON_SIZE = 20.dp
 
