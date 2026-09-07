@@ -1,6 +1,8 @@
 # PersonalApp
 
-App Android de uso personal (Kotlin + Jetpack Compose + Material 3).
+App Android de finanzas personales, de uso personal (Kotlin + Jetpack Compose + Material 3).
+Estética liquid glass sobre un fondo de blobs animados, con barra inferior flotante que se
+encoge al hacer scroll. Se desarrolla en 4 fases (ver `HANDOFF.md`).
 
 > El nombre `PersonalApp` y el paquete `com.personal.app` son provisionales
 > hasta definir la funcionalidad de la app.
@@ -23,15 +25,21 @@ App Android de uso personal (Kotlin + Jetpack Compose + Material 3).
 ./gradlew assembleRelease      # APK release (R8, firmado con la clave debug) -> app/build/outputs/apk/release/
 ./gradlew testDebugUnitTest    # tests unitarios
 ./gradlew lintDebug            # Android Lint
+./gradlew recordRoborazziDebug # capturas de cada pantalla en app/screenshots/ (sin emulador)
 adb install -r app/build/outputs/apk/debug/app-debug.apk   # instalar en un móvil por USB
 ```
 
 ## Estructura
 
 ```
-app/src/main/java/com/personal/app/   codigo Kotlin (MainActivity, ui/theme)
-app/src/main/res/                     recursos (strings, tema, icono adaptativo)
-app/src/test/                         tests unitarios (JUnit 4)
+app/src/main/java/com/personal/app/
+  FinanceApp.kt                       raiz de la UI: fondo -> pantalla -> barra
+  ui/theme/                           colores, tipografia, tokens glass (Glass.kt), tema
+  ui/components/                      BlobBackground, GlassSurface/GlassCard, BubbleNavBar, NavBarScrollState
+  ui/navigation/                      Destination (5 pestañas) y AppNavHost
+  ui/screens/                         PlaceholderScreen y las 5 pantallas
+app/src/main/res/                     strings (en + es), tema, icono adaptativo
+app/src/test/                         tests unitarios y de captura (Robolectric + Roborazzi)
 gradle/libs.versions.toml             catalogo de versiones
 .claude/hooks/session-start.sh        instala el SDK en Claude Code web
 ```

@@ -29,17 +29,47 @@ terminadas (ver "Compactar" abajo y D-009).
 
 - **Fecha**: 2026-09-07
 - **Repo**: `vicvilchez05-eng/test`, rama de trabajo `claude/android-personal-setup-hm95yj`.
-- **Qué hay**: esqueleto de app Android (Kotlin + Jetpack Compose + Material 3) que compila,
-  pasa tests y lint, y genera APK debug y release. Sin funcionalidad todavía.
-- **Nombre y paquete**: `PersonalApp` / `com.personal.app`, **provisionales** hasta conocer la
-  funcionalidad de la app.
+- **Qué es**: app de **finanzas personales** (ver "Plan por fases"). Kotlin + Jetpack Compose +
+  Material 3.
+- **Fase 1 terminada, pendiente de feedback de Vic**: fondo de blobs animado, tema liquid glass,
+  barra inferior burbuja que se encoge al bajar y se expande al subir, y las 5 pantallas vacías
+  (Home, Accounts, Total Balance, Settings, Profile) con navegación.
+- **Verificación**: compila (debug y release), tests y lint en verde, y capturas de pantalla
+  reales generadas en JVM con Roborazzi (`./gradlew recordRoborazziDebug` → `app/screenshots/`).
+- **Nombre y paquete**: `PersonalApp` / `com.personal.app`, **provisionales**.
 - **Entorno**: hook de arranque que instala el SDK de Android en cada sesión web de Claude Code.
-- **Siguiente paso**: Vic entrega la especificación completa de la app.
+- **Siguiente paso**: Vic revisa la Fase 1 y da el visto bueno (o cambios) antes de la Fase 2.
+
+## Plan por fases (especificación de Vic, 2026-09-07)
+
+Requisitos visuales comunes: estética premium, moderna y elegante. Fondo con blobs animados,
+lentos y sutiles. Tarjetas y elementos estilo "liquid glass" (glassmorphism, como iOS moderno:
+translucidez, bordes sutiles, sombras suaves). Barra inferior flotante tipo burbuja que se encoge
+al hacer scroll hacia abajo y recupera su tamaño al subir. Pantallas: Home, Accounts, Total
+Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fase y fase**.
+
+- **Fase 1 · Setup y arquitectura de UI** ✅ (S-004): framework, fondo animado, estilo glass,
+  barra burbuja con lógica de scroll, 5 pantallas vacías con navegación.
+- **Fase 2 · Datos e integración bancaria**: modelos de Accounts, Transactions y Balances.
+  Sincronización primaria con Open Banking en modo mock/sandbox (Plaid o Tink) para tarjetas,
+  saldos en tiempo real y transacciones. Sincronización secundaria manual: formulario glass para
+  ingresos/gastos si el usuario no quiere vincular banco. Entregable: lógica de datos, plantillas
+  de integración de API y UI de entrada manual.
+- **Fase 3 · Pantallas y lógica**: Home (últimas transacciones, botones de añadir rápido,
+  resumen). Accounts y Total Balance (tarjetas bancarias y saldos detallados en glass). Profile y
+  Settings (preferencias, selección de moneda, cambio de tema). Entregable: componentes de cada
+  pantalla alimentados con los modelos de la Fase 2.
+- **Fase 4 · Informes y exportación**: resúmenes semanales y mensuales, gráficas simples y
+  elegantes (líneas o barras) en Total Balance, exportación a PDF estructurado y CSV.
+  Entregable: algoritmos de informes y utilidades de exportación.
 
 ## Pendientes / preguntas abiertas
 
-- [ ] Recibir la especificación de la app (qué hace, datos locales, internet/APIs, distribución).
+- [ ] **Feedback de Vic sobre la Fase 1** antes de empezar la Fase 2.
 - [ ] Decidir nombre definitivo y paquete (`applicationId`), renombrar `com.personal.app`.
+- [ ] Fase 2: elegir proveedor de Open Banking sandbox (Plaid vs Tink) y si Vic tiene cuenta.
+- [ ] Probar en un móvil real: rendimiento del fondo (blur + 4 gradientes por frame) y tacto del
+  spring de la barra. Solo se ha verificado en capturas estáticas.
 - [ ] Decidir si la app vive en este repo (`test`) o en un repo propio.
 - [ ] Decidir si el hook de arranque pasa a modo asíncrono (arranque más rápido, riesgo de
   usar Gradle antes de que el SDK esté listo).
@@ -142,6 +172,78 @@ terminadas (ver "Compactar" abajo y D-009).
 - **Descartado**: compactar solo a petición (D-008 original): obliga a Vic a vigilar el tamaño.
   Resumir en vez de borrar: el resumen sigue creciendo y no ataja el problema.
 
+### D-010 · 2026-09-07 · "Glassmorphism CSS" se traduce a modificadores Compose, sin blur de fondo real
+- **Decisión**: `GlassSurface` = relleno degradado translúcido + borde degradado de 1dp (más
+  brillante arriba-izquierda) + brillo radial en la esquina + línea clara en el borde superior.
+  **No** se aplica desenfoque del contenido de detrás (backdrop blur).
+- **Por qué**: el brief habla de CSS porque está pensado para web; en Android nativo el backdrop
+  blur exige `RenderEffect` (API 31+) y una pasada de render extra por cada tarjeta. Como el
+  fondo de blobs ya está desenfocado, la simple translucidez se lee como cristal.
+- **Para qué**: 60 fps en cualquier móvil y el mismo aspecto en API 26 y en API 36.
+- **Descartado**: backdrop blur real por tarjeta (caro, solo API 31+); librerías de terceros tipo
+  Haze (dependencia extra para un efecto que ya conseguimos).
+
+### D-011 · 2026-09-07 · Sombra suave propia, recortada del interior de la tarjeta
+- **Decisión**: `Modifier.glassShadow`: 10 rectángulos redondeados apilados, cada vez mayores y
+  más tenues, dibujados con `clipPath(Difference)` para que no pinten dentro de la tarjeta.
+- **Por qué**: la sombra estándar (`Modifier.shadow`) se ve a través de superficies translúcidas
+  y las oscurece; el `dropShadow` de Compose 1.9 rellena también el interior.
+- **Para qué**: sombra que funciona en todas las APIs y en Robolectric, sin ensuciar el cristal.
+
+### D-012 · 2026-09-07 · Fondo de blobs en Canvas con trayectorias Lissajous
+- **Decisión**: `BlobBackground`: 4 círculos con degradado radial que se desvanece, cada uno con
+  su ciclo de 23 a 37 s (cos en X, sin(2t) en Y), radio con un pulso del 6 %, y `Modifier.blur`
+  de 56dp sobre todo el canvas (solo API 31+; en menores el degradado ya es suave).
+- **Por qué**: "lento y no distrae" → ciclos largos y desfasados, sin saltos al reiniciar el loop
+  (frecuencias enteras). Un solo `Canvas` es más barato que cuatro composables animados.
+- **Para qué**: sensación fluida constante con coste fijo por frame.
+- **Parámetros**: `animated` y `blur` se desactivan en tests para capturas deterministas.
+
+### D-013 · 2026-09-07 · Barra burbuja controlada por NestedScrollConnection en la raíz
+- **Decisión**: `NavBarScrollState` instalado con `Modifier.nestedScroll` en el contenedor de
+  todas las pantallas. Mide el scroll **consumido** en `onPostScroll`, con umbral de 24 px y
+  reinicio al cambiar de dirección; al llegar arriba siempre se expande. Un único `progress`
+  animado con spring mueve altura (72→54dp), márgenes (20→44dp), tamaño de icono y opacidad de
+  etiquetas a la vez.
+- **Por qué**: ninguna pantalla tiene que saber que existe la barra; basta con que use un
+  `LazyColumn`. Usar el scroll consumido (y no el gesto) evita que la barra se encoja en una
+  lista que no puede moverse (detectado en la primera captura).
+- **Para qué**: comportamiento uniforme en las 5 pantallas y en las futuras.
+- **Descartado**: `onPreScroll` con el delta del gesto (primera versión); `TopAppBarScrollBehavior`
+  de Material (pensado para barras superiores, acopla la UI a Material).
+
+### D-014 · 2026-09-07 · Navigation Compose con rutas de texto
+- **Decisión**: `navigation-compose` 2.9.8, rutas `String` en el enum `Destination`, una entrada
+  de back stack por pestaña con `saveState`/`restoreState`, transición cross-fade.
+- **Por qué**: las rutas tipadas exigen el plugin kotlinx-serialization; con 5 destinos planos
+  no compensa. El cross-fade mantiene el fondo quieto, que es lo que da la sensación fluida.
+- **Para qué**: navegación estándar, fácil de ampliar con sub-pantallas en Fase 3.
+
+### D-015 · 2026-09-07 · Color dinámico (Material You) desactivado
+- **Decisión**: paleta fija (índigo, violeta, teal, rosa) en claro y oscuro.
+- **Por qué**: el look glass depende de esa paleta; los colores del fondo de pantalla del usuario
+  chocarían con ella.
+- **Para qué**: aspecto consistente y controlado.
+
+### D-016 · 2026-09-07 · Capturas en JVM con Roborazzi como verificación visual
+- **Decisión**: `ScreenshotTest` (Robolectric 4.16.1 + Roborazzi 1.73.0, SDK 35, Pixel 7) genera
+  PNG de cada pantalla, en claro y oscuro y con la barra encogida. `app/screenshots/` está en
+  `.gitignore`.
+- **Por qué**: no hay emulador en el entorno web (sin KVM). Sin capturas, Claude estaría
+  diseñando a ciegas. Los PNG pesan ~2 MB cada uno; no se versionan.
+- **Para qué**: ver el resultado real antes de enseñárselo a Vic y detectar regresiones visuales.
+- **Comando**: `./gradlew recordRoborazziDebug`.
+
+### D-017 · 2026-09-07 · Textos en inglés por defecto con traducción al español
+- **Decisión**: `values/strings.xml` en inglés (nombres de pantalla del brief) y `values-es/`.
+- **Por qué**: el brief usa nombres en inglés; el móvil de Vic probablemente esté en español.
+- **Para qué**: la app se ve en el idioma del sistema sin tocar código.
+
+### D-018 · 2026-09-07 · `material-icons-extended` para los iconos de la barra
+- **Decisión**: dependencia completa de iconos extendidos.
+- **Por qué**: "Wallet" e "Insights" no están en el set básico. R8 elimina los no usados en
+  release, así que el peso solo afecta al APK de debug.
+
 ---
 
 ## Registro de sesiones
@@ -181,4 +283,36 @@ terminadas (ver "Compactar" abajo y D-009).
 - **Hecho**: procedimiento de compactación escrito en "Cómo usar este archivo", decisión D-009
   registrada, D-008 marcada como actualizada, regla añadida a `CLAUDE.md` con la comprobación
   `wc -l` al inicio de sesión.
-- **Resultado**: commit pusheado a `claude/android-personal-setup-hm95yj`.
+- **Resultado**: commit `c038d15` pusheado a `claude/android-personal-setup-hm95yj`.
+
+### S-004 · 2026-09-07 · Fase 1: fondo animado, glass, barra burbuja y pantallas vacías
+- **Petición de Vic**: brief completo de la app de finanzas personales en 4 fases (copiado en
+  "Plan por fases"). "Start by executing Phase 1 only [...] Wait for my feedback before moving
+  to Phase 2."
+- **Hecho**:
+  - Tema: `Color.kt`, `Type.kt` (títulos compactos y pesados), `Glass.kt` (tokens `GlassTokens`
+    claro/oscuro + `BlobSpec`), `Theme.kt` (provee `LocalGlass`, sin color dinámico).
+  - Componentes: `BlobBackground`, `GlassSurface`/`GlassCard`/`glassShadow`, `BubbleNavBar`,
+    `NavBarScrollState`.
+  - Navegación: `Destination` (enum de 5 pestañas), `AppNavHost`, `navigateToTab`.
+  - Pantallas: `PlaceholderScreen` compartido y las 5 pantallas en `Screens.kt` con secciones
+    que anuncian en qué fase llegan.
+  - `FinanceApp` (raíz: fondo → pantalla → barra) y `MainActivity` edge-to-edge.
+  - Dependencias nuevas: navigation-compose, material-icons-extended, robolectric, roborazzi,
+    ui-test-junit4, androidx.test.ext.junit.
+  - Strings EN + ES.
+- **Problemas y cómo se resolvieron**:
+  1. `animateFloat` sin resolver → es una extensión, faltaba el import.
+  2. Aviso de Gradle 8.14.3 "deprecated" por Kotlin 2.4 → silenciado en `gradle.properties`
+     (`kotlin.suppressGradlePluginWarnings`); Gradle 8.14.4 queda como mejora futura.
+  3. Primera captura: la barra se encogía con el gesto aunque la lista no se moviera → pasar a
+     scroll consumido (D-013). Home tenía poco contenido para hacer scroll → 3 secciones más.
+  4. Tarjeta tintada en modo claro demasiado saturada → alfa fija del tinte (0,30/0,14 claro,
+     0,36/0,16 oscuro) en vez de derivarla del relleno.
+  5. Lint `MissingTranslation` en `app_name` → `translatable="false"`.
+  6. Lint `UseOfNonLambdaOffsetOverload` en el indicador → `offset { IntOffset(...) }`.
+- **Resultado**: `assembleDebug`, `assembleRelease`, `testDebugUnitTest` (5 tests, 4 de captura)
+  y `lintDebug` en verde. 7 capturas generadas y enviadas a Vic. Commit pusheado a
+  `claude/android-personal-setup-hm95yj`.
+- **Avisos de lint que quedan** (no bloqueantes): versiones más nuevas disponibles (por D-003)
+  y el `-v26` del icono (por D-004).

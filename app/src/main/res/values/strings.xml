@@ -1,4 +1,23 @@
 <resources>
-    <string name="app_name">PersonalApp</string>
-    <string name="hello">Hola, %1$s</string>
+    <string name="app_name" translatable="false">PersonalApp</string>
+
+    <string name="nav_home">Home</string>
+    <string name="nav_accounts">Accounts</string>
+    <string name="nav_balance">Balance</string>
+    <string name="nav_settings">Settings</string>
+    <string name="nav_profile">Profile</string>
+
+    <string name="home_title">Home</string>
+    <string name="home_subtitle">Your money at a glance</string>
+    <string name="accounts_title">Accounts</string>
+    <string name="accounts_subtitle">Cards and linked banks</string>
+    <string name="balance_title">Total Balance</string>
+    <string name="balance_subtitle">Everything you own, in one number</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_subtitle">Currency, theme and preferences</string>
+    <string name="profile_title">Profile</string>
+    <string name="profile_subtitle">You and your data</string>
+
+    <string name="placeholder_phase">Coming in %1$s</string>
+    <string name="placeholder_hero_label">Placeholder</string>
 </resources>
