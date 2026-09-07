@@ -37,8 +37,10 @@ class ScreenshotTest {
 
     private val now = 1_757_260_800_000L // 2025-09-07T16:00:00Z
 
+    private fun exporter() = com.personal.app.data.export.ExportManager(androidx.test.core.app.ApplicationProvider.getApplicationContext(), clock = { now })
+
     private fun seededContainer(): AppContainer {
-        val container = AppContainer(InMemoryFinanceStore(), listOf(MockBankProvider(clock = { now }, latencyMillis = 0)), clock = { now })
+        val container = AppContainer(InMemoryFinanceStore(), listOf(MockBankProvider(clock = { now }, latencyMillis = 0)), clock = { now }, exporter = exporter())
         runBlocking {
             container.preferences.setName("Vic")
             container.repository.linkBank("mock", "demo")
@@ -48,7 +50,7 @@ class ScreenshotTest {
         return container
     }
 
-    private fun emptyContainer() = AppContainer(InMemoryFinanceStore(), listOf(MockBankProvider(clock = { now }, latencyMillis = 0)), clock = { now })
+    private fun emptyContainer() = AppContainer(InMemoryFinanceStore(), listOf(MockBankProvider(clock = { now }, latencyMillis = 0)), clock = { now }, exporter = exporter())
 
     private fun setApp(dark: Boolean, container: AppContainer = seededContainer()) {
         compose.setContent {
@@ -89,11 +91,27 @@ class ScreenshotTest {
     @Test
     fun other_tabs_light() {
         setApp(dark = false)
-        listOf("accounts", "balance", "settings", "profile").forEach { route ->
+        listOf("accounts", "settings", "profile").forEach { route ->
             compose.onNodeWithTag("nav_$route").performClick()
             compose.waitForIdle()
             compose.onRoot().captureRoboImage("screenshots/${route}_light.png")
         }
+    }
+
+    @Test
+    fun balance_light_and_dark() {
+        setApp(dark = false)
+        compose.onNodeWithTag("nav_balance").performClick(); compose.waitForIdle()
+        compose.onRoot().captureRoboImage("screenshots/balance_light.png")
+        compose.onNodeWithTag("screen_list").performTouchInput { swipeUp() }; compose.waitForIdle()
+        compose.onRoot().captureRoboImage("screenshots/balance_light_scrolled.png")
+    }
+
+    @Test
+    fun balance_dark() {
+        setApp(dark = true)
+        compose.onNodeWithTag("nav_balance").performClick(); compose.waitForIdle()
+        compose.onRoot().captureRoboImage("screenshots/balance_dark.png")
     }
 
     @Test

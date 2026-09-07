@@ -23,10 +23,7 @@
     <string name="hero_net_worth">Net worth</string>
     <string name="stat_income">Income</string>
     <string name="stat_expenses">Expenses</string>
-    <string name="stat_spending">Spending</string>
     <string name="stat_banks">Banks</string>
-    <string name="stat_weekly_spending">Weekly spending</string>
-    <string name="stat_monthly_income">Monthly income</string>
 
 
     <string name="section_linked">Linked</string>
@@ -53,8 +50,6 @@
     <string name="phase_2">Phase 2</string>
     <string name="phase_3">Phase 3</string>
     <string name="phase_4">Phase 4</string>
-    <string name="placeholder_phase">Coming in %1$s</string>
-    <string name="placeholder_chart">Chart · %1$s</string>
     <string name="greeting_hello">Hello, %1$s!</string>
     <string name="hero_total_balance">Total balance</string>
     <string name="section_monthly_expenses">Monthly expenses</string>
@@ -159,4 +154,24 @@
         <item quantity="one">%1$d movement</item>
         <item quantity="other">%1$d movements</item>
     </plurals>
+    <string name="stat_net">Net</string>
+    <string name="stat_assets">Assets</string>
+    <string name="stat_liabilities">Liabilities</string>
+    <string name="section_evolution">Evolution</string>
+    <string name="section_summary">Summary</string>
+    <string name="this_week_label">This week</string>
+    <string name="this_month_label">This month</string>
+    <string name="section_last_6_months">Last 6 months</string>
+    <string name="section_by_account">By account</string>
+    <string name="expenses_per_month">Expenses per month</string>
+    <string name="avg_daily_expense">Average %1$s per day</string>
+    <string name="no_expenses_period">No expenses in this period.</string>
+    <string name="export_generating">Generating…</string>
+    <string name="export_note">Files are created on the phone and offered to share; nothing is uploaded.</string>
+    <string name="export_share_title">Share report</string>
+    <string name="report_title">Financial report</string>
+    <string name="report_page">Page %1$d</string>
+    <string name="report_categories_month">Expenses by category this month</string>
+    <string name="report_transactions_month">Movements this month (%1$d)</string>
+    <string name="report_amount">Amount</string>
 </resources>

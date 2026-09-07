@@ -327,3 +327,79 @@ class AccountDetailViewModel(private val repo: FinanceRepository, private val ac
     fun delete() = viewModelScope.launch { repo.deleteAccount(accountId); deleted.value = true }
     fun unlink(connectionId: String) = viewModelScope.launch { repo.unlinkBank(connectionId); deleted.value = true }
 }
+
+
+// ---- Total balance / reports ----
+
+enum class ReportPeriod { WEEK, MONTH }
+
+data class BalanceUiState(
+    val totalMinor: Long = 0,
+    val assetsMinor: Long = 0,
+    val liabilitiesMinor: Long = 0,
+    val monthOverMonthPercent: Double? = null,
+    val history: List<Pair<java.time.LocalDate, Long>> = emptyList(),
+    val period: ReportPeriod = ReportPeriod.MONTH,
+    val week: com.personal.app.domain.Reports.PeriodSummary? = null,
+    val month: com.personal.app.domain.Reports.PeriodSummary? = null,
+    val series: List<com.personal.app.domain.Reports.MonthPoint> = emptyList(),
+    val accounts: List<Account> = emptyList(),
+    val currency: String = "EUR",
+    val exporting: Boolean = false,
+    val exportError: String? = null,
+) {
+    val summary: com.personal.app.domain.Reports.PeriodSummary? get() = if (period == ReportPeriod.WEEK) week else month
+}
+
+/** A file ready to share, with its mime type. */
+data class ShareRequest(val file: java.io.File, val mime: String)
+
+class BalanceViewModel(
+    private val repo: FinanceRepository,
+    private val prefs: PreferencesRepository,
+    private val exporter: com.personal.app.data.export.ExportManager?,
+) : ViewModel() {
+    private val period = MutableStateFlow(ReportPeriod.MONTH)
+    private val exporting = MutableStateFlow(false)
+    private val exportError = MutableStateFlow<String?>(null)
+    private val _share = kotlinx.coroutines.flow.MutableSharedFlow<ShareRequest>(extraBufferCapacity = 1)
+    val share: kotlinx.coroutines.flow.SharedFlow<ShareRequest> = _share
+
+    val state: StateFlow<BalanceUiState> = combine(repo.data, prefs.prefs, period, exporting, exportError) { d, p, per, busy, err ->
+        val now = repo.clock()
+        val zone = ZoneId.systemDefault()
+        val today = Instant.ofEpochMilli(now).atZone(zone).toLocalDate()
+        val ym = YearMonth.from(today)
+        BalanceUiState(
+            totalMinor = FinanceCalculator.totalBalance(d.accounts),
+            assetsMinor = FinanceCalculator.assets(d.accounts),
+            liabilitiesMinor = d.accounts.filter { it.type == AccountType.CREDIT }.sumOf { it.balanceMinor },
+            monthOverMonthPercent = FinanceCalculator.monthOverMonthPercent(d.accounts, d.transactions, ym, zone),
+            history = FinanceCalculator.balanceHistory(d.accounts, d.transactions, now, 30, zone),
+            period = per,
+            week = com.personal.app.domain.Reports.week(d.transactions, today, zone),
+            month = com.personal.app.domain.Reports.month(d.transactions, ym, zone),
+            series = com.personal.app.domain.Reports.monthlySeries(d.transactions, ym, 6, zone),
+            accounts = d.accounts.sortedByDescending { it.balanceMinor },
+            currency = p.currency,
+            exporting = busy,
+            exportError = err,
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), BalanceUiState())
+
+    fun setPeriod(p: ReportPeriod) { period.value = p }
+
+    fun exportCsv() = export { it.exportCsv(repo.data.value) to "text/csv" }
+    fun exportPdf() = export { it.exportPdf(repo.data.value, prefs.prefs.value.currency, prefs.prefs.value.name) to "application/pdf" }
+
+    private fun export(block: (com.personal.app.data.export.ExportManager) -> Pair<java.io.File, String>) {
+        val ex = exporter ?: run { exportError.value = "Export unavailable"; return }
+        viewModelScope.launch {
+            exporting.value = true; exportError.value = null
+            runCatching { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { block(ex) } }
+                .onSuccess { (file, mime) -> _share.tryEmit(ShareRequest(file, mime)) }
+                .onFailure { exportError.value = it.message ?: it.javaClass.simpleName }
+            exporting.value = false
+        }
+    }
+}

@@ -54,7 +54,10 @@ terminadas (ver "Compactar" abajo y D-009).
 - **Fase 3 terminada** (S-011): preferencias persistentes (nombre, moneda, tema, privacidad,
   notificaciones), Ajustes y Perfil funcionales, detalle de cuenta, lista completa de
   movimientos con borrado, desvincular banco, borrar todo.
-- **Fase 4 en curso** (S-012): informes semanal/mensual, gráfica en Balance, exportación PDF/CSV.
+- **Fase 4 terminada** (S-012): informes semanal/mensual, serie de 6 meses, evolución de 30 días,
+  Balance completo, exportación CSV y PDF con hoja de compartir.
+- **Las 4 fases del brief están hechas.** Pendiente: que Vic pruebe la exportación PDF en el
+  móvil (no se puede generar en Robolectric) y decida qué viene después (ver Pendientes).
 
 ## Plan por fases (especificación de Vic, 2026-09-07)
 
@@ -75,7 +78,7 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
   resumen). Accounts y Total Balance (tarjetas bancarias y saldos detallados en glass). Profile y
   Settings (preferencias, selección de moneda, cambio de tema). Entregable: componentes de cada
   pantalla alimentados con los modelos de la Fase 2.
-- **Fase 4 · Informes y exportación**: resúmenes semanales y mensuales, gráficas simples y
+- **Fase 4 · Informes y exportación** ✅ (S-012): resúmenes semanales y mensuales, gráficas simples y
   elegantes (líneas o barras) en Total Balance, exportación a PDF estructurado y CSV.
   Entregable: algoritmos de informes y utilidades de exportación.
 
@@ -91,6 +94,12 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
   Sandbox local (`MockBankProvider`) + plantilla documentada (`OpenBankingProviderTemplate`).
 - [x] Feedback de Vic sobre la Fase 2 → aprobada, continuar con 3 y 4 sin parar.
 - [x] Nombre del saludo → editable en Perfil (`UserPreferences.name`); vacío muestra "¡Hola!".
+- [ ] **Probar en el móvil la exportación PDF** (Balance → Exportar informe). Robolectric no
+  implementa `PdfDocument` (nativo), así que el test se omite y el PDF solo está revisado en
+  código. El CSV sí está probado.
+- [ ] Ideas de continuación (no pedidas): presupuestos por categoría, metas de ahorro,
+  recordatorio de registro, keystore propio para actualizar sin desinstalar (D-005),
+  icono/splash propios, temas de Esforia.
 - [ ] Notificaciones: el interruptor se guarda pero no hay ninguna notificación implementada
   (recordatorio de registrar gastos, resumen semanal…). Decidir en una fase futura.
 - [ ] Multi-moneda: los totales suman céntimos sin convertir. Si Vic mezcla monedas, hará
@@ -232,6 +241,34 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 - **Actualiza**: D-012 (blobs planos → gotas 3D), D-015 (paleta índigo/violeta/teal/rosa →
   periwinkle/champán/lila), D-018 (iconos Rounded → Outlined). Las tres siguen vigentes en lo
   demás.
+
+### D-028 · 2026-09-07 · Exportación con `PdfDocument` + `FileProvider`, sin librerías
+- **Decisión**: `ExportManager` genera el CSV (RFC 4180, coma, comillas dobladas, importes con
+  punto decimal, fecha y hora separadas, más antiguo primero) y el PDF (A4, `android.graphics.pdf
+  .PdfDocument`: título, cajas KPI de mes y semana, cuentas con patrimonio neto, barras por
+  categoría del mes, tabla paginada de movimientos del mes con cabecera repetida y número de
+  página). Archivos en `cacheDir/exports/` servidos por `FileProvider` (`file_paths.xml`) y
+  entregados con `Intent.ACTION_SEND` + selector. La UI recibe un `ShareRequest` por
+  `SharedFlow` y lanza el selector desde el contexto de la Activity.
+- **Por qué**: sin permisos de almacenamiento ni dependencias nuevas; el usuario elige destino
+  (Drive, correo, Archivos) en la hoja de compartir. Una librería PDF (iText, PdfBox-Android)
+  añadiría megas y licencias para un informe de dos páginas.
+- **Para qué**: informes que Vic pueda guardar o mandar, generados en local.
+- **Descartado**: escribir en Descargas (MediaStore + permisos según versión); librerías PDF;
+  generar HTML e imprimir (depende del servicio de impresión).
+- **Limitación**: `PdfDocument` es nativo y Robolectric devuelve "document is closed", así que
+  `ExportManagerTest` omite la parte PDF con `Assume`. Verificar en dispositivo.
+
+### D-029 · 2026-09-07 · Informes como funciones puras en `domain/Reports`
+- **Decisión**: `Reports.summarize/week/month/monthlySeries` devuelven `PeriodSummary`
+  (ingresos, gastos, neto, por categoría, gasto por día con ceros, nº de movimientos, media
+  diaria) y `MonthPoint`. Semana = lunes a domingo. `FinanceCalculator.balanceHistory`
+  reconstruye el saldo diario hacia atrás (saldo actual menos lo posterior a cada día).
+- **Por qué**: las mismas cifras alimentan la pantalla de Balance y el PDF; una sola fuente.
+- **Para qué**: tests deterministas sin Android y coherencia entre pantalla e informe.
+- **Nota**: la variación mensual del hero (`monthOverMonthPercent`) compara el neto del mes con
+  el patrimonio al cierre del mes anterior; con pocos datos puede ser llamativa (−7,8 % con
+  solo gastos y la nómina el 28).
 
 ### D-027 · 2026-09-07 · Preferencias en `settings.json` con el mismo almacén genérico
 - **Decisión**: `JsonFileFinanceStore` se generaliza a `JsonFileStore<T>` / `Store<T>`
@@ -604,6 +641,23 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
   de los blobs ajustados en `Glass.kt`. Sin cambios en tarjetas ni barra.
 - **Resultado**: `lintDebug`, `assembleRelease` y 5 tests en verde. 7 capturas enviadas a Vic.
   Commit `0982c65` pusheado a `claude/android-personal-setup-hm95yj`. APK entregado a Vic.
+
+### S-012 · 2026-09-07 · Fase 4: informes, gráfica de evolución, exportación PDF/CSV
+- **Petición de Vic**: continuar con las fases restantes.
+- **Hecho**: `domain/Reports.kt` (D-029); `ExportManager` + `PdfReport` + `FileProvider`
+  (D-028); `LineChart` (área con degradado, máximo/mínimo/último, etiquetas de fecha) y
+  `BarChart` con etiquetas de valor y color único; `BalanceViewModel` (patrimonio, activos,
+  deudas, variación, histórico 30 días, resumen semana/mes conmutable, serie 6 meses, cuentas,
+  exportación con estado y errores); `TotalBalanceScreen` reescrita: hero, Evolución, Resumen
+  con `SegmentedToggle` (semana → barras por día; mes → donut por categoría) y media diaria,
+  Últimos 6 meses, Por cuenta, Exportar (PDF/CSV) con nota de privacidad. `AppContainer.exporter`.
+  Strings EN/ES del informe. `labelResOf()` para usar etiquetas de categoría fuera de Compose.
+- **Tests**: `ReportsTest` (semana lunes–domingo con días vacíos, mes, serie),
+  `ExportManagerTest` (CSV RFC 4180 con comillas y comas, archivos en caché, libro vacío; PDF
+  omitido en Robolectric). Capturas de Balance en claro (arriba y desplazado) y oscuro.
+- **Problemas**: `PdfDocument` no funciona en Robolectric (nativo) → `Assume` en el test.
+- **Resultado**: 34 tests (1 omitido) y lint en verde. Release 1,9 MB. Commit pusheado a
+  `claude/android-personal-setup-hm95yj`. APK y capturas enviados a Vic.
 
 ### S-011 · 2026-09-07 · Fase 3: preferencias, Ajustes, Perfil, detalle de cuenta, movimientos
 - **Petición de Vic**: "quedó hermoso, continúa con las demás fases".

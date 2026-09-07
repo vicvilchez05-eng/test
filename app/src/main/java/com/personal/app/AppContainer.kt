@@ -5,6 +5,7 @@ import android.content.Context
 import androidx.compose.runtime.staticCompositionLocalOf
 import com.personal.app.data.bank.BankProvider
 import com.personal.app.data.bank.MockBankProvider
+import com.personal.app.data.export.ExportManager
 import com.personal.app.data.prefs.PreferencesRepository
 import com.personal.app.data.prefs.UserPreferences
 import com.personal.app.data.repository.FinanceRepository
@@ -25,6 +26,8 @@ class AppContainer(
     providers: List<BankProvider>,
     clock: () -> Long = { System.currentTimeMillis() },
     prefsStore: Store<UserPreferences> = InMemoryStore(UserPreferences()),
+    /** Null only in pure JVM tests without a Context. */
+    val exporter: ExportManager? = null,
 ) {
     val providers: Map<String, BankProvider> = providers.associateBy { it.id }
     val repository = FinanceRepository(store, this.providers, clock)
@@ -35,6 +38,7 @@ class AppContainer(
             store = JsonFileFinanceStore(File(context.filesDir, "finance.json")),
             providers = listOf(MockBankProvider()),
             prefsStore = JsonFileStore(File(context.filesDir, "settings.json"), UserPreferences.serializer(), UserPreferences()),
+            exporter = ExportManager(context.applicationContext),
         )
     }
 }

@@ -21,10 +21,7 @@
     <string name="hero_net_worth">Patrimonio neto</string>
     <string name="stat_income">Ingresos</string>
     <string name="stat_expenses">Gastos</string>
-    <string name="stat_spending">Gasto</string>
     <string name="stat_banks">Bancos</string>
-    <string name="stat_weekly_spending">Gasto semanal</string>
-    <string name="stat_monthly_income">Ingreso mensual</string>
 
 
     <string name="section_linked">Vinculadas</string>
@@ -51,8 +48,6 @@
     <string name="phase_2">Fase 2</string>
     <string name="phase_3">Fase 3</string>
     <string name="phase_4">Fase 4</string>
-    <string name="placeholder_phase">Llega en la %1$s</string>
-    <string name="placeholder_chart">Gráfica · %1$s</string>
     <string name="greeting_hello">¡Hola, %1$s!</string>
     <string name="hero_total_balance">Balance total</string>
     <string name="section_monthly_expenses">Gastos mensuales</string>
@@ -160,4 +155,24 @@
         <item quantity="many">%1$d movimientos</item>
         <item quantity="other">%1$d movimientos</item>
     </plurals>
+    <string name="stat_net">Neto</string>
+    <string name="stat_assets">Activos</string>
+    <string name="stat_liabilities">Deudas</string>
+    <string name="section_evolution">Evolución</string>
+    <string name="section_summary">Resumen</string>
+    <string name="this_week_label">Esta semana</string>
+    <string name="this_month_label">Este mes</string>
+    <string name="section_last_6_months">Últimos 6 meses</string>
+    <string name="section_by_account">Por cuenta</string>
+    <string name="expenses_per_month">Gastos por mes</string>
+    <string name="avg_daily_expense">Media de %1$s al día</string>
+    <string name="no_expenses_period">Sin gastos en este periodo.</string>
+    <string name="export_generating">Generando…</string>
+    <string name="export_note">Los archivos se crean en el móvil y se ofrecen para compartir; nada se sube a ningún sitio.</string>
+    <string name="export_share_title">Compartir informe</string>
+    <string name="report_title">Informe financiero</string>
+    <string name="report_page">Página %1$d</string>
+    <string name="report_categories_month">Gastos por categoría este mes</string>
+    <string name="report_transactions_month">Movimientos de este mes (%1$d)</string>
+    <string name="report_amount">Importe</string>
 </resources>

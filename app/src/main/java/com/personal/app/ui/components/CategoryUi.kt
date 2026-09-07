@@ -74,3 +74,6 @@ val AccountType.labelRes: Int
         AccountType.CASH -> R.string.acc_cash
         AccountType.INVESTMENT -> R.string.acc_investment
     }
+
+/** Same mapping as [Category.labelRes], callable from plain Kotlin (exports). */
+fun labelResOf(category: Category): Int = category.labelRes
