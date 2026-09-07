@@ -5,6 +5,11 @@ App Android de uso personal (Kotlin + Jetpack Compose + Material 3).
 > El nombre `PersonalApp` y el paquete `com.personal.app` son provisionales
 > hasta definir la funcionalidad de la app.
 
+## Documentación
+
+- `HANDOFF.md`: diario del proyecto. Estado actual, pendientes y el porqué de cada decisión. Leer antes de tocar nada.
+- `CLAUDE.md`: convenciones para Claude Code.
+
 ## Requisitos
 
 - JDK 17 o superior (probado con JDK 21)
