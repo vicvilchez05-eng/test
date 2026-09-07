@@ -11,6 +11,11 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
+import androidx.navigation.NavType
+import com.personal.app.ui.screens.AccountDetailScreen
+import com.personal.app.ui.screens.CurrencyScreen
+import com.personal.app.ui.screens.TransactionsScreen
 import com.personal.app.ui.screens.AccountsScreen
 import com.personal.app.ui.screens.AddAccountScreen
 import com.personal.app.ui.screens.AddTransactionScreen
@@ -25,7 +30,12 @@ object Routes {
     const val ADD_TRANSACTION = "add_transaction"
     const val ADD_ACCOUNT = "add_account"
     const val LINK_BANK = "link_bank"
-    val forms = setOf(ADD_TRANSACTION, ADD_ACCOUNT, LINK_BANK)
+    const val CURRENCY = "settings/currency"
+    const val TRANSACTIONS = "transactions?accountId={accountId}"
+    const val ACCOUNT = "account/{id}"
+    val forms = setOf(ADD_TRANSACTION, ADD_ACCOUNT, LINK_BANK, CURRENCY, TRANSACTIONS, ACCOUNT)
+    fun transactions(accountId: String? = null) = if (accountId == null) "transactions" else "transactions?accountId=$accountId"
+    fun account(id: String) = "account/$id"
 }
 
 @Composable
@@ -46,17 +56,26 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
                 onAddTransaction = { navController.navigate(Routes.ADD_TRANSACTION) },
                 onLinkBank = { navController.navigate(Routes.LINK_BANK) },
                 onAddAccount = { navController.navigate(Routes.ADD_ACCOUNT) },
+                onAccount = { navController.navigate(Routes.account(it)) },
+                onAllTransactions = { navController.navigate(Routes.transactions()) },
             )
         }
         composable(Destination.Accounts.route) {
             AccountsScreen(
                 onLinkBank = { navController.navigate(Routes.LINK_BANK) },
                 onAddAccount = { navController.navigate(Routes.ADD_ACCOUNT) },
+                onAccount = { navController.navigate(Routes.account(it)) },
             )
         }
         composable(Destination.Balance.route) { TotalBalanceScreen() }
-        composable(Destination.Settings.route) { SettingsScreen() }
-        composable(Destination.Profile.route) { ProfileScreen() }
+        composable(Destination.Settings.route) {
+            SettingsScreen(
+                onCurrency = { navController.navigate(Routes.CURRENCY) },
+                onAccounts = { navController.navigateToTab(Destination.Accounts) },
+                onExport = { navController.navigateToTab(Destination.Balance) },
+            )
+        }
+        composable(Destination.Profile.route) { ProfileScreen(onLinkBank = { navController.navigate(Routes.LINK_BANK) }) }
 
         val slideIn = slideInVertically(tween(260)) { it / 6 } + fadeIn(tween(200))
         val slideOut = slideOutVertically(tween(200)) { it / 6 } + fadeOut(tween(160))
@@ -68,6 +87,24 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         }
         composable(Routes.LINK_BANK, enterTransition = { slideIn }, popExitTransition = { slideOut }) {
             LinkBankScreen(onDone = back)
+        }
+        composable(Routes.CURRENCY, enterTransition = { slideIn }, popExitTransition = { slideOut }) {
+            CurrencyScreen(onDone = back)
+        }
+        composable(
+            Routes.TRANSACTIONS,
+            arguments = listOf(navArgument("accountId") { type = NavType.StringType; nullable = true; defaultValue = null }),
+            enterTransition = { slideIn }, popExitTransition = { slideOut },
+        ) { entry ->
+            TransactionsScreen(accountId = entry.arguments?.getString("accountId"), onDone = back)
+        }
+        composable(
+            Routes.ACCOUNT,
+            arguments = listOf(navArgument("id") { type = NavType.StringType }),
+            enterTransition = { slideIn }, popExitTransition = { slideOut },
+        ) { entry ->
+            val id = entry.arguments?.getString("id") ?: return@composable
+            AccountDetailScreen(accountId = id, onDone = back, onAllTransactions = { navController.navigate(Routes.transactions(id)) })
         }
     }
 }

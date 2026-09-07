@@ -50,10 +50,11 @@ terminadas (ver "Compactar" abajo y D-009).
   reales generadas en JVM con Roborazzi (`./gradlew recordRoborazziDebug` → `app/screenshots/`).
 - **Nombre y paquete**: `PersonalApp` / `com.personal.app`, **provisionales**.
 - **Entorno**: hook de arranque que instala el SDK de Android en cada sesión web de Claude Code.
-- **Fase 2 terminada, pendiente de feedback de Vic** (S-010): modelos, almacén JSON, banco
-  sandbox local, plantilla para un proveedor real, repositorio, cálculos, y las pantallas de
-  vincular banco, añadir cuenta y añadir movimiento. Home y Cuentas ya leen datos reales.
-- **Siguiente paso**: Vic prueba la Fase 2 (APK) y da el visto bueno antes de la Fase 3.
+- **Fase 2 aprobada por Vic** ("quedó hermoso, continúa con las demás fases").
+- **Fase 3 terminada** (S-011): preferencias persistentes (nombre, moneda, tema, privacidad,
+  notificaciones), Ajustes y Perfil funcionales, detalle de cuenta, lista completa de
+  movimientos con borrado, desvincular banco, borrar todo.
+- **Fase 4 en curso** (S-012): informes semanal/mensual, gráfica en Balance, exportación PDF/CSV.
 
 ## Plan por fases (especificación de Vic, 2026-09-07)
 
@@ -70,7 +71,7 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
   saldos en tiempo real y transacciones. Sincronización secundaria manual: formulario glass para
   ingresos/gastos si el usuario no quiere vincular banco. Entregable: lógica de datos, plantillas
   de integración de API y UI de entrada manual.
-- **Fase 3 · Pantallas y lógica**: Home (últimas transacciones, botones de añadir rápido,
+- **Fase 3 · Pantallas y lógica** ✅ (S-011): Home (últimas transacciones, botones de añadir rápido,
   resumen). Accounts y Total Balance (tarjetas bancarias y saldos detallados en glass). Profile y
   Settings (preferencias, selección de moneda, cambio de tema). Entregable: componentes de cada
   pantalla alimentados con los modelos de la Fase 2.
@@ -88,9 +89,12 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 - [ ] Decidir nombre definitivo y paquete (`applicationId`), renombrar `com.personal.app`.
 - [x] Fase 2: proveedor Open Banking → Vic no conoce Plaid/Tink y no quiere darse de alta.
   Sandbox local (`MockBankProvider`) + plantilla documentada (`OpenBankingProviderTemplate`).
-- [ ] **Feedback de Vic sobre la Fase 2** antes de la Fase 3.
-- [ ] Fase 3: decidir si el nombre "Vic" del saludo y el avatar salen de un perfil editable
-  (Profile) o se quedan fijos.
+- [x] Feedback de Vic sobre la Fase 2 → aprobada, continuar con 3 y 4 sin parar.
+- [x] Nombre del saludo → editable en Perfil (`UserPreferences.name`); vacío muestra "¡Hola!".
+- [ ] Notificaciones: el interruptor se guarda pero no hay ninguna notificación implementada
+  (recordatorio de registrar gastos, resumen semanal…). Decidir en una fase futura.
+- [ ] Multi-moneda: los totales suman céntimos sin convertir. Si Vic mezcla monedas, hará
+  falta una tabla de cambio (manual o API).
 - [ ] Vigilar KSP para Kotlin 2.4.x: si aparece, valorar Room (D-025 lo deja preparado).
 - [ ] Probar en un móvil real: rendimiento del fondo (blur + 4 gradientes por frame) y tacto del
   spring de la barra. Solo se ha verificado en capturas estáticas.
@@ -228,6 +232,20 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 - **Actualiza**: D-012 (blobs planos → gotas 3D), D-015 (paleta índigo/violeta/teal/rosa →
   periwinkle/champán/lila), D-018 (iconos Rounded → Outlined). Las tres siguen vigentes en lo
   demás.
+
+### D-027 · 2026-09-07 · Preferencias en `settings.json` con el mismo almacén genérico
+- **Decisión**: `JsonFileFinanceStore` se generaliza a `JsonFileStore<T>` / `Store<T>`
+  (`FinanceStore` = `Store<FinanceData>`); las preferencias son `UserPreferences` en
+  `settings.json` vía `PreferencesRepository`. El tema (sistema/claro/oscuro) se aplica en
+  `MainActivity`; moneda y privacidad llegan a la UI por `LocalMoneyDisplay` y el helper
+  `money()` (que imprime "••••" en modo privacidad).
+- **Por qué**: DataStore añadiría otra dependencia para cinco campos; el almacén JSON ya
+  existe, es atómico y está probado. Separar preferencias del libro permite "borrar todos los
+  datos" sin perder ajustes.
+- **Para qué**: un solo mecanismo de persistencia en toda la app.
+- **Descartado**: DataStore Preferences, SharedPreferences (sin tipos ni migración).
+- **Límites conocidos**: la moneda de visualización no convierte importes (solo etiqueta y
+  moneda por defecto de cuentas manuales); "Notificaciones" se guarda pero no hace nada aún.
 
 ### D-025 · 2026-09-07 · Persistencia en un archivo JSON (kotlinx.serialization), sin Room ni DI
 - **Decisión**: `FinanceStore` (interfaz) con `JsonFileFinanceStore` (un archivo
@@ -586,6 +604,26 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
   de los blobs ajustados en `Glass.kt`. Sin cambios en tarjetas ni barra.
 - **Resultado**: `lintDebug`, `assembleRelease` y 5 tests en verde. 7 capturas enviadas a Vic.
   Commit `0982c65` pusheado a `claude/android-personal-setup-hm95yj`. APK entregado a Vic.
+
+### S-011 · 2026-09-07 · Fase 3: preferencias, Ajustes, Perfil, detalle de cuenta, movimientos
+- **Petición de Vic**: "quedó hermoso, continúa con las demás fases".
+- **Hecho**: `Store<T>`/`JsonFileStore<T>` genérico; `UserPreferences` + `PreferencesRepository`
+  (D-027); `AppContainer.preferences`; tema por preferencia en `MainActivity`;
+  `LocalMoneyDisplay` + `money()`. `FinanceRepository.wipeAll()`/`account()`;
+  `FinanceCalculator.balanceHistory()`/`groupByDay()`. ViewModels: Settings, Profile,
+  Transactions, AccountDetail; Home usa el nombre de perfil y tiene ojo de privacidad, tap en
+  tarjeta → detalle, "Ver todo" → movimientos. Pantallas: `SettingsScreen` (moneda → picker,
+  notificaciones, privacidad, tema, atajos a bancos e informes, borrar todo con confirmación,
+  versión), `CurrencyScreen`, `ProfileScreen` (avatar con inicial, editar nombre, chips de
+  cuentas/movimientos, bancos vinculados con desvincular, privacidad, borrar todo),
+  `TransactionsScreen` (agrupado por día, Hoy/Ayer, tap → detalle/borrar),
+  `AccountDetailScreen` (hero con ingresos/gastos del mes, línea de 30 días, últimos
+  movimientos, borrar/desvincular). `ConfirmDialog` en paleta. Rutas con argumentos
+  (`account/{id}`, `transactions?accountId=`) que ocultan la barra. `BuildConfig` activado
+  para mostrar la versión. Plurales `n_accounts`/`n_transactions`.
+- **Tests**: `JsonFileStoreTest` (recarga, archivo corrupto, claves desconocidas). Capturas:
+  ajustes y perfil en oscuro, detalle de cuenta, movimientos, Home en modo privacidad.
+- **Resultado**: 27 tests y lint en verde. Commit pusheado a `claude/android-personal-setup-hm95yj`.
 
 ### S-010 · 2026-09-07 · Fase 2: datos, banco sandbox, entrada manual
 - **Petición de Vic**: arrancar la Fase 2 sin Plaid/Tink ("no tengo ni idea de qué es Plaid o

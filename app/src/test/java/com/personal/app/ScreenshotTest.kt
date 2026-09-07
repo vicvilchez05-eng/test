@@ -40,6 +40,7 @@ class ScreenshotTest {
     private fun seededContainer(): AppContainer {
         val container = AppContainer(InMemoryFinanceStore(), listOf(MockBankProvider(clock = { now }, latencyMillis = 0)), clock = { now })
         runBlocking {
+            container.preferences.setName("Vic")
             container.repository.linkBank("mock", "demo")
             val cash = container.repository.addManualAccount("Efectivo", AccountType.CASH, 120_00)
             container.repository.addManualTransaction(cash.id, -12_50, Category.FOOD, "Bocadillo", timestamp = now - 3600_000L)
@@ -93,6 +94,36 @@ class ScreenshotTest {
             compose.waitForIdle()
             compose.onRoot().captureRoboImage("screenshots/${route}_light.png")
         }
+    }
+
+    @Test
+    fun settings_profile_dark() {
+        setApp(dark = true)
+        compose.onNodeWithTag("nav_settings").performClick(); compose.waitForIdle()
+        compose.onRoot().captureRoboImage("screenshots/settings_dark.png")
+        compose.onNodeWithTag("nav_profile").performClick(); compose.waitForIdle()
+        compose.onRoot().captureRoboImage("screenshots/profile_dark.png")
+    }
+
+    @Test
+    fun account_detail_and_transactions_light() {
+        setApp(dark = false)
+        compose.onNodeWithTag("tile_mock:demo-cc").performClick(); compose.waitForIdle()
+        compose.onRoot().captureRoboImage("screenshots/account_detail_light.png")
+    }
+
+    @Test
+    fun all_transactions_light() {
+        setApp(dark = false)
+        compose.onNodeWithTag("home_all_transactions").performClick(); compose.waitForIdle()
+        compose.onRoot().captureRoboImage("screenshots/transactions_light.png")
+    }
+
+    @Test
+    fun privacy_mode_light() {
+        setApp(dark = false)
+        compose.onNodeWithTag("home_privacy").performClick(); compose.waitForIdle()
+        compose.onRoot().captureRoboImage("screenshots/home_privacy_light.png")
     }
 
     @Test

@@ -22,6 +22,7 @@
     <string name="hero_all_accounts">Across all accounts</string>
     <string name="hero_net_worth">Net worth</string>
     <string name="stat_income">Income</string>
+    <string name="stat_expenses">Expenses</string>
     <string name="stat_spending">Spending</string>
     <string name="stat_banks">Banks</string>
     <string name="stat_weekly_spending">Weekly spending</string>
@@ -37,22 +38,14 @@
     <string name="group_general">General</string>
     <string name="group_data">Data</string>
     <string name="group_help">Help</string>
-    <string name="group_account">Account</string>
     <string name="group_privacy">Privacy</string>
 
     <string name="row_linked_banks">Linked banks</string>
-    <string name="row_manual_entries">Manual entries</string>
     <string name="row_currency">Currency</string>
     <string name="row_notifications">Notifications</string>
-    <string name="row_dark_mode">Dark mode</string>
     <string name="row_bank_apis">Manage bank APIs</string>
     <string name="row_reports">Reports</string>
-    <string name="row_backup">Data &amp; backup</string>
-    <string name="row_support">Support &amp; help</string>
     <string name="row_about">About</string>
-    <string name="row_profile_info">Profile info</string>
-    <string name="row_security">Security</string>
-    <string name="row_privacy">Privacy</string>
 
     <string name="export_pdf">Export report (PDF)</string>
     <string name="export_csv">Export data (CSV)</string>
@@ -127,5 +120,43 @@
     <plurals name="accounts_imported">
         <item quantity="one">%1$d account imported with its history.</item>
         <item quantity="other">%1$d accounts imported with their history.</item>
+    </plurals>
+    <string name="greeting_hello_anon">Hello!</string>
+    <string name="row_privacy_mode">Privacy mode</string>
+    <string name="group_appearance">Appearance</string>
+    <string name="row_theme">Theme</string>
+    <string name="theme_system">System</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="row_delete_all">Delete all data</string>
+    <string name="delete_all_title">Delete everything?</string>
+    <string name="delete_all_body">Accounts, movements and bank links will be removed from this phone. Your preferences stay. This cannot be undone.</string>
+    <string name="delete">Delete</string>
+    <string name="close">Close</string>
+    <string name="currency_note">Used to display totals and as the default for new manual accounts. Amounts are not converted between currencies.</string>
+    <string name="field_name_person_hint">Your name</string>
+    <string name="no_name_yet">No name yet</string>
+    <string name="member_since">Since %1$s</string>
+    <string name="edit_name">Edit name</string>
+    <string name="unlink_title">Unlink %1$s?</string>
+    <string name="unlink_body">Its accounts and imported movements will be removed from this phone. You can link it again later.</string>
+    <string name="unlink">Unlink</string>
+    <string name="unlink_bank">Unlink this bank</string>
+    <string name="delete_account">Delete account</string>
+    <string name="delete_account_title">Delete %1$s?</string>
+    <string name="delete_account_body">The account and all its movements will be removed. This cannot be undone.</string>
+    <string name="all_transactions">All movements</string>
+    <string name="view_all">View all</string>
+    <string name="view_all_n">%1$d in total</string>
+    <string name="today">Today</string>
+    <string name="yesterday">Yesterday</string>
+    <string name="section_last_30_days">Last 30 days</string>
+    <plurals name="n_accounts">
+        <item quantity="one">%1$d account</item>
+        <item quantity="other">%1$d accounts</item>
+    </plurals>
+    <plurals name="n_transactions">
+        <item quantity="one">%1$d movement</item>
+        <item quantity="other">%1$d movements</item>
     </plurals>
 </resources>

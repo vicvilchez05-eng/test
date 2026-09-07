@@ -39,10 +39,15 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.personal.app.R
 import com.personal.app.data.model.Account
-import com.personal.app.data.model.Money
 import com.personal.app.data.model.Transaction
 import com.personal.app.ui.components.BarChart
+import com.personal.app.ui.components.Chip
 import com.personal.app.ui.components.CircleIconButton
+import com.personal.app.ui.components.LocalMoneyDisplay
+import com.personal.app.ui.components.money
+import com.personal.app.ui.components.pressable
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import com.personal.app.ui.components.HeroCard
 import com.personal.app.ui.components.OutlineButton
 import com.personal.app.ui.components.SectionLabel
@@ -64,11 +69,15 @@ import java.util.Locale
  * Every surface is Esforia's. Data comes from HomeViewModel (Phase 2).
  */
 
-private const val USER = "Vic"
-
 @Composable
-fun HomeScreen(onAddTransaction: () -> Unit, onLinkBank: () -> Unit, onAddAccount: () -> Unit) {
-    val vm = appViewModel { HomeViewModel(it.repository) }
+fun HomeScreen(
+    onAddTransaction: () -> Unit,
+    onLinkBank: () -> Unit,
+    onAddAccount: () -> Unit,
+    onAccount: (String) -> Unit,
+    onAllTransactions: () -> Unit,
+) {
+    val vm = appViewModel { HomeViewModel(it.repository, it.preferences) }
     val s by vm.state.collectAsStateWithLifecycle()
     val p = LocalPalette.current
     val date = remember { SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date()).replaceFirstChar { it.uppercase() } }
@@ -79,21 +88,23 @@ fun HomeScreen(onAddTransaction: () -> Unit, onLinkBank: () -> Unit, onAddAccoun
                 Column(Modifier.weight(1f)) {
                     Text(date, style = MaterialTheme.typography.bodyMedium, color = p.inkSoft)
                     Spacer(Modifier.height(4.dp))
-                    Text(stringResource(R.string.greeting_hello, USER), style = MaterialTheme.typography.headlineMedium, color = p.ink)
+                    val greeting = if (s.userName.isBlank()) stringResource(R.string.greeting_hello_anon) else stringResource(R.string.greeting_hello, s.userName)
+                    Text(greeting, style = MaterialTheme.typography.headlineMedium, color = p.ink)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(top = 4.dp)) {
                     CircleIconButton(Icons.Outlined.Add, contentDescription = stringResource(R.string.add_transaction_title), onClick = onAddTransaction, size = 38.dp, modifier = Modifier.testTag("home_add"))
-                    Avatar(initial = USER.take(1))
+                    Avatar(initial = s.userName.trim().take(1).uppercase().ifEmpty { "·" })
                 }
             }
             Spacer(Modifier.height(20.dp))
         }
         item {
             HeroCard(Modifier.fillMaxWidth()) {
+                Box(Modifier.fillMaxWidth()) {
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(stringResource(R.string.hero_total_balance).uppercase(), style = MaterialTheme.typography.labelLarge, color = Color.White.copy(alpha = 0.85f))
                     Spacer(Modifier.height(6.dp))
-                    Text(Money.format(s.totalMinor), style = MaterialTheme.typography.displaySmall, color = p.onAccent)
+                    Text(money(s.totalMinor), style = MaterialTheme.typography.displaySmall, color = p.onAccent)
                     Spacer(Modifier.height(6.dp))
                     val pct = s.monthOverMonthPercent
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -104,6 +115,20 @@ fun HomeScreen(onAddTransaction: () -> Unit, onLinkBank: () -> Unit, onAddAccoun
                             Text(stringResource(R.string.no_history_yet), style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.85f))
                         }
                     }
+                }
+                val privacy = LocalMoneyDisplay.current.privacy
+                Box(
+                    Modifier
+                        .align(Alignment.TopEnd)
+                        .size(30.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.18f))
+                        .pressable(vm::togglePrivacy)
+                        .testTag("home_privacy"),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(if (privacy) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility, contentDescription = stringResource(R.string.row_privacy_mode), tint = Color.White, modifier = Modifier.size(15.dp))
+                }
                 }
             }
             Spacer(Modifier.height(14.dp))
@@ -123,7 +148,7 @@ fun HomeScreen(onAddTransaction: () -> Unit, onLinkBank: () -> Unit, onAddAccoun
         } else {
             item {
                 LazyRow(contentPadding = PaddingValues(horizontal = 0.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    items(s.accounts.size) { i -> AccountTile(s.accounts[i]) }
+                    items(s.accounts.size) { i -> AccountTile(s.accounts[i], onClick = { onAccount(s.accounts[i].id) }) }
                 }
             }
             if (s.expenseShares.isNotEmpty()) {
@@ -135,7 +160,9 @@ fun HomeScreen(onAddTransaction: () -> Unit, onLinkBank: () -> Unit, onAddAccoun
                 }
             }
             item {
-                SectionLabel(stringResource(R.string.section_recent_transactions))
+                SectionLabel(stringResource(R.string.section_recent_transactions), trailing = {
+                    if (s.recent.isNotEmpty()) Box(Modifier.pressable(onAllTransactions).testTag("home_all_transactions")) { Chip(stringResource(R.string.view_all)) }
+                })
                 if (s.recent.isEmpty()) {
                     SurfaceCard(Modifier.fillMaxWidth()) {
                         Text(stringResource(R.string.no_transactions_yet), style = MaterialTheme.typography.bodyMedium, color = p.inkSoft)
@@ -174,16 +201,16 @@ private fun Avatar(initial: String, modifier: Modifier = Modifier) {
 
 /** One account in the horizontal strip: an Esforia card with an icon tile, name and amount. */
 @Composable
-private fun AccountTile(account: Account) {
+private fun AccountTile(account: Account, onClick: () -> Unit) {
     val p = LocalPalette.current
-    SurfaceCard(Modifier.width(132.dp), contentPadding = PaddingValues(14.dp)) {
+    SurfaceCard(Modifier.width(132.dp).testTag("tile_${account.id}"), contentPadding = PaddingValues(14.dp), onClick = onClick) {
         Box(Modifier.size(28.dp).clip(RoundedCornerShape(9.dp)).background(p.mossSoft), contentAlignment = Alignment.Center) {
             Icon(account.type.icon, contentDescription = null, tint = p.mossText, modifier = Modifier.size(15.dp))
         }
         Spacer(Modifier.height(12.dp))
         Text(account.name, style = MaterialTheme.typography.bodySmall, color = p.inkSoft, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Spacer(Modifier.height(2.dp))
-        Text(Money.format(account.balanceMinor, account.currency), style = MonoText, color = if (account.balanceMinor < 0) p.negative else p.ink, maxLines = 1)
+        Text(money(account.balanceMinor, account.currency), style = MonoText, color = if (account.balanceMinor < 0) p.negative else p.ink, maxLines = 1)
     }
 }
 
@@ -201,6 +228,6 @@ fun TransactionRow(tx: Transaction) {
         }
         Spacer(Modifier.width(12.dp))
         Text(tx.description, style = MaterialTheme.typography.bodyLarge, color = p.ink, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Text(Money.format(tx.amountMinor, tx.currency, signed = true), style = MonoText, color = if (positive) p.emberText else p.ink)
+        Text(money(tx.amountMinor, tx.currency, signed = true), style = MonoText, color = if (positive) p.emberText else p.ink)
     }
 }

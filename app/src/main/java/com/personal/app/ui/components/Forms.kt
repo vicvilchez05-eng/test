@@ -196,3 +196,36 @@ fun FormHeader(title: String, onBack: () -> Unit, modifier: Modifier = Modifier)
 }
 
 private val Double.sp get() = androidx.compose.ui.unit.TextUnit(this.toFloat(), androidx.compose.ui.unit.TextUnitType.Sp)
+
+/** A yes/no dialog in the palette's colours. [danger] paints the confirm action red. */
+@Composable
+fun ConfirmDialog(
+    title: String,
+    body: String,
+    confirmText: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    dismissText: String,
+    danger: Boolean = false,
+) {
+    val p = LocalPalette.current
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = p.surface,
+        titleContentColor = p.ink,
+        textContentColor = p.inkSoft,
+        shape = RoundedCornerShape(18.dp),
+        title = { Text(title, style = MaterialTheme.typography.titleLarge) },
+        text = { Text(body, style = MaterialTheme.typography.bodyMedium) },
+        confirmButton = {
+            androidx.compose.material3.TextButton(onClick = onConfirm) {
+                Text(confirmText, style = MaterialTheme.typography.titleSmall, color = if (danger) p.danger else p.mossText)
+            }
+        },
+        dismissButton = {
+            androidx.compose.material3.TextButton(onClick = onDismiss) {
+                Text(dismissText, style = MaterialTheme.typography.titleSmall, color = p.inkSoft)
+            }
+        },
+    )
+}

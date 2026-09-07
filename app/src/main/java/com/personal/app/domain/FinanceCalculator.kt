@@ -57,6 +57,37 @@ object FinanceCalculator {
     fun recent(transactions: List<Transaction>, limit: Int = 5): List<Transaction> =
         transactions.sortedByDescending { it.timestamp }.take(limit)
 
+    /**
+     * Balance at the end of each of the last [days] days (oldest first), reconstructed backwards:
+     * today's balance minus everything that happened after that day. Optionally for one account.
+     */
+    fun balanceHistory(
+        accounts: List<Account>,
+        transactions: List<Transaction>,
+        now: Long,
+        days: Int = 30,
+        zone: ZoneId = ZoneId.systemDefault(),
+        accountId: String? = null,
+    ): List<Pair<java.time.LocalDate, Long>> {
+        val scopedAccounts = if (accountId == null) accounts else accounts.filter { it.id == accountId }
+        val scopedTx = if (accountId == null) transactions else transactions.filter { it.accountId == accountId }
+        val current = totalBalance(scopedAccounts)
+        val today = Instant.ofEpochMilli(now).atZone(zone).toLocalDate()
+        return (days - 1 downTo 0).map { back ->
+            val day = today.minusDays(back.toLong())
+            val dayEnd = day.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
+            val after = scopedTx.filter { it.timestamp >= dayEnd }.sumOf { it.amountMinor }
+            day to (current - after)
+        }
+    }
+
+    /** Transactions grouped by calendar day, newest day first, each day newest first. */
+    fun groupByDay(transactions: List<Transaction>, zone: ZoneId = ZoneId.systemDefault()): List<Pair<java.time.LocalDate, List<Transaction>>> =
+        transactions
+            .sortedByDescending { it.timestamp }
+            .groupBy { Instant.ofEpochMilli(it.timestamp).atZone(zone).toLocalDate() }
+            .toList()
+
     private fun Transaction.monthAt(zone: ZoneId): YearMonth =
         YearMonth.from(Instant.ofEpochMilli(timestamp).atZone(zone))
 }

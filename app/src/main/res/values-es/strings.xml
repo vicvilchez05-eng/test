@@ -20,6 +20,7 @@
     <string name="hero_all_accounts">En todas las cuentas</string>
     <string name="hero_net_worth">Patrimonio neto</string>
     <string name="stat_income">Ingresos</string>
+    <string name="stat_expenses">Gastos</string>
     <string name="stat_spending">Gasto</string>
     <string name="stat_banks">Bancos</string>
     <string name="stat_weekly_spending">Gasto semanal</string>
@@ -35,22 +36,14 @@
     <string name="group_general">General</string>
     <string name="group_data">Datos</string>
     <string name="group_help">Ayuda</string>
-    <string name="group_account">Cuenta</string>
     <string name="group_privacy">Privacidad</string>
 
     <string name="row_linked_banks">Bancos vinculados</string>
-    <string name="row_manual_entries">Entradas manuales</string>
     <string name="row_currency">Moneda</string>
     <string name="row_notifications">Notificaciones</string>
-    <string name="row_dark_mode">Modo oscuro</string>
     <string name="row_bank_apis">Gestionar APIs bancarias</string>
     <string name="row_reports">Informes</string>
-    <string name="row_backup">Datos y copia de seguridad</string>
-    <string name="row_support">Soporte y ayuda</string>
     <string name="row_about">Acerca de</string>
-    <string name="row_profile_info">Datos del perfil</string>
-    <string name="row_security">Seguridad</string>
-    <string name="row_privacy">Privacidad</string>
 
     <string name="export_pdf">Exportar informe (PDF)</string>
     <string name="export_csv">Exportar datos (CSV)</string>
@@ -126,5 +119,45 @@
         <item quantity="one">%1$d cuenta importada con su histórico.</item>
         <item quantity="many">%1$d cuentas importadas con su histórico.</item>
         <item quantity="other">%1$d cuentas importadas con su histórico.</item>
+    </plurals>
+    <string name="greeting_hello_anon">¡Hola!</string>
+    <string name="row_privacy_mode">Modo privacidad</string>
+    <string name="group_appearance">Apariencia</string>
+    <string name="row_theme">Tema</string>
+    <string name="theme_system">Sistema</string>
+    <string name="theme_light">Claro</string>
+    <string name="theme_dark">Oscuro</string>
+    <string name="row_delete_all">Borrar todos los datos</string>
+    <string name="delete_all_title">¿Borrar todo?</string>
+    <string name="delete_all_body">Se eliminarán de este móvil las cuentas, los movimientos y los bancos vinculados. Tus preferencias se conservan. No se puede deshacer.</string>
+    <string name="delete">Borrar</string>
+    <string name="close">Cerrar</string>
+    <string name="currency_note">Se usa para mostrar los totales y como moneda por defecto de las cuentas manuales nuevas. Los importes no se convierten entre monedas.</string>
+    <string name="field_name_person_hint">Tu nombre</string>
+    <string name="no_name_yet">Sin nombre</string>
+    <string name="member_since">Desde %1$s</string>
+    <string name="edit_name">Editar nombre</string>
+    <string name="unlink_title">¿Desvincular %1$s?</string>
+    <string name="unlink_body">Sus cuentas y los movimientos importados se eliminarán de este móvil. Podrás vincularlo de nuevo más tarde.</string>
+    <string name="unlink">Desvincular</string>
+    <string name="unlink_bank">Desvincular este banco</string>
+    <string name="delete_account">Borrar cuenta</string>
+    <string name="delete_account_title">¿Borrar %1$s?</string>
+    <string name="delete_account_body">Se eliminarán la cuenta y todos sus movimientos. No se puede deshacer.</string>
+    <string name="all_transactions">Todos los movimientos</string>
+    <string name="view_all">Ver todo</string>
+    <string name="view_all_n">%1$d en total</string>
+    <string name="today">Hoy</string>
+    <string name="yesterday">Ayer</string>
+    <string name="section_last_30_days">Últimos 30 días</string>
+    <plurals name="n_accounts">
+        <item quantity="one">%1$d cuenta</item>
+        <item quantity="many">%1$d cuentas</item>
+        <item quantity="other">%1$d cuentas</item>
+    </plurals>
+    <plurals name="n_transactions">
+        <item quantity="one">%1$d movimiento</item>
+        <item quantity="many">%1$d movimientos</item>
+        <item quantity="other">%1$d movimientos</item>
     </plurals>
 </resources>

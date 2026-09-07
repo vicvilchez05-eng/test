@@ -97,6 +97,14 @@ class FinanceRepository(
         store.update { d -> d.copy(accounts = d.accounts.filterNot { it.id == id }, transactions = d.transactions.filterNot { it.accountId == id }) }
     }
 
+    /** Deletes every account, transaction and connection. Preferences are untouched. */
+    suspend fun wipeAll() {
+        data.value.connections.forEach { c -> runCatching { provider(c.providerId).unlink(c.externalId) } }
+        store.update { FinanceData() }
+    }
+
+    fun account(id: String): Account? = data.value.accounts.firstOrNull { it.id == id }
+
     // ---- Linked path ----
 
     /** Runs the provider's consent flow, stores the connection, imports its accounts and syncs. */

@@ -13,6 +13,9 @@ import com.personal.app.data.model.BankConnection
 import com.personal.app.data.model.Category
 import com.personal.app.data.model.Money
 import com.personal.app.data.model.Transaction
+import com.personal.app.data.prefs.PreferencesRepository
+import com.personal.app.data.prefs.ThemeMode
+import com.personal.app.data.prefs.UserPreferences
 import com.personal.app.data.repository.FinanceRepository
 import com.personal.app.data.repository.SyncState
 import com.personal.app.domain.FinanceCalculator
@@ -43,6 +46,7 @@ inline fun <reified VM : ViewModel> appViewModel(crossinline create: (AppContain
 // ---- Home ----
 
 data class HomeUiState(
+    val userName: String = "",
     val accounts: List<Account> = emptyList(),
     val totalMinor: Long = 0,
     val monthOverMonthPercent: Double? = null,
@@ -51,10 +55,11 @@ data class HomeUiState(
     val hasData: Boolean = false,
 )
 
-class HomeViewModel(private val repo: FinanceRepository) : ViewModel() {
-    val state: StateFlow<HomeUiState> = repo.data.map { d ->
+class HomeViewModel(private val repo: FinanceRepository, private val prefs: PreferencesRepository) : ViewModel() {
+    val state: StateFlow<HomeUiState> = combine(repo.data, prefs.prefs) { d, p ->
         val month = YearMonth.from(Instant.ofEpochMilli(repo.clock()).atZone(ZoneId.systemDefault()))
         HomeUiState(
+            userName = p.name,
             accounts = d.accounts.sortedBy { it.createdAt },
             totalMinor = FinanceCalculator.totalBalance(d.accounts),
             monthOverMonthPercent = FinanceCalculator.monthOverMonthPercent(d.accounts, d.transactions, month),
@@ -63,6 +68,8 @@ class HomeViewModel(private val repo: FinanceRepository) : ViewModel() {
             hasData = d.accounts.isNotEmpty(),
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
+
+    fun togglePrivacy() = viewModelScope.launch { prefs.update { it.copy(privacyMode = !it.privacyMode) } }
 }
 
 // ---- Accounts ----
@@ -223,4 +230,100 @@ class LinkBankViewModel(private val repo: FinanceRepository, private val provide
     }
 
     fun reset() { _state.value = _state.value.copy(step = LinkStep.Choose) }
+}
+
+
+// ---- Settings ----
+
+class SettingsViewModel(private val prefs: PreferencesRepository, private val repo: FinanceRepository) : ViewModel() {
+    val state: StateFlow<UserPreferences> = prefs.prefs
+    fun setCurrency(code: String) = viewModelScope.launch { prefs.setCurrency(code) }
+    fun setThemeMode(mode: ThemeMode) = viewModelScope.launch { prefs.setThemeMode(mode) }
+    fun setPrivacy(on: Boolean) = viewModelScope.launch { prefs.setPrivacyMode(on) }
+    fun setNotifications(on: Boolean) = viewModelScope.launch { prefs.setNotifications(on) }
+    fun wipeAll() = viewModelScope.launch { repo.wipeAll() }
+}
+
+// ---- Profile ----
+
+data class ProfileUiState(
+    val name: String = "",
+    val accounts: Int = 0,
+    val transactions: Int = 0,
+    val connections: List<BankConnection> = emptyList(),
+    val since: Long? = null,
+    val privacyMode: Boolean = false,
+)
+
+class ProfileViewModel(private val prefs: PreferencesRepository, private val repo: FinanceRepository) : ViewModel() {
+    val state: StateFlow<ProfileUiState> = combine(prefs.prefs, repo.data) { p, d ->
+        ProfileUiState(
+            name = p.name,
+            accounts = d.accounts.size,
+            transactions = d.transactions.size,
+            connections = d.connections,
+            since = d.accounts.minOfOrNull { it.createdAt },
+            privacyMode = p.privacyMode,
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ProfileUiState())
+
+    fun setName(name: String) = viewModelScope.launch { prefs.setName(name) }
+    fun setPrivacy(on: Boolean) = viewModelScope.launch { prefs.setPrivacyMode(on) }
+    fun unlink(connectionId: String) = viewModelScope.launch { repo.unlinkBank(connectionId) }
+    fun wipeAll() = viewModelScope.launch { repo.wipeAll() }
+}
+
+// ---- Transactions list (all, or one account) ----
+
+data class TransactionsUiState(
+    val title: String? = null,
+    val days: List<Pair<java.time.LocalDate, List<Transaction>>> = emptyList(),
+    val accountsById: Map<String, Account> = emptyMap(),
+)
+
+class TransactionsViewModel(private val repo: FinanceRepository, private val accountId: String?) : ViewModel() {
+    val state: StateFlow<TransactionsUiState> = repo.data.map { d ->
+        val scoped = if (accountId == null) d.transactions else d.transactions.filter { it.accountId == accountId }
+        TransactionsUiState(
+            title = accountId?.let { id -> d.accounts.firstOrNull { it.id == id }?.name },
+            days = FinanceCalculator.groupByDay(scoped),
+            accountsById = d.accounts.associateBy { it.id },
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TransactionsUiState())
+
+    fun delete(id: String) = viewModelScope.launch { repo.deleteTransaction(id) }
+}
+
+// ---- Account detail ----
+
+data class AccountDetailUiState(
+    val account: Account? = null,
+    val history: List<Pair<java.time.LocalDate, Long>> = emptyList(),
+    val monthIncomeMinor: Long = 0,
+    val monthExpensesMinor: Long = 0,
+    val recent: List<Transaction> = emptyList(),
+    val transactionCount: Int = 0,
+    val deleted: Boolean = false,
+)
+
+class AccountDetailViewModel(private val repo: FinanceRepository, private val accountId: String) : ViewModel() {
+    private val deleted = MutableStateFlow(false)
+    val state: StateFlow<AccountDetailUiState> = combine(repo.data, deleted) { d, gone ->
+        val account = d.accounts.firstOrNull { it.id == accountId }
+        val txs = d.transactions.filter { it.accountId == accountId }
+        val month = YearMonth.from(Instant.ofEpochMilli(repo.clock()).atZone(ZoneId.systemDefault()))
+        val totals = FinanceCalculator.monthTotals(txs, month)
+        AccountDetailUiState(
+            account = account,
+            history = if (account != null) FinanceCalculator.balanceHistory(d.accounts, d.transactions, repo.clock(), 30, accountId = accountId) else emptyList(),
+            monthIncomeMinor = totals.incomeMinor,
+            monthExpensesMinor = totals.expensesMinor,
+            recent = FinanceCalculator.recent(txs, 6),
+            transactionCount = txs.size,
+            deleted = gone || (account == null),
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AccountDetailUiState())
+
+    fun delete() = viewModelScope.launch { repo.deleteAccount(accountId); deleted.value = true }
+    fun unlink(connectionId: String) = viewModelScope.launch { repo.unlinkBank(connectionId); deleted.value = true }
 }

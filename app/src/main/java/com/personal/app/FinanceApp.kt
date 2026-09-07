@@ -5,7 +5,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import com.personal.app.ui.components.LocalMoneyDisplay
+import com.personal.app.ui.components.MoneyDisplay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -30,13 +34,16 @@ fun FinanceApp(
     animatedBackground: Boolean = true,
     blurBackground: Boolean = true,
 ) {
+    val container = LocalAppContainer.current
+    val prefs by container.preferences.prefs.collectAsState()
     val navController = rememberNavController()
     val scrollState = rememberNavBarScrollState()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val route = backStackEntry?.destination?.route
     val current = Destination.fromRoute(route) ?: Destination.start
-    val onForm = route in Routes.forms
+    val onForm = route != null && Destination.fromRoute(route) == null
 
+    CompositionLocalProvider(LocalMoneyDisplay provides MoneyDisplay(prefs.currency, prefs.privacyMode)) {
     Box(Modifier.fillMaxSize()) {
         AmbientBackground(tone = current.tone, animated = animatedBackground, blur = blurBackground)
 
@@ -57,5 +64,6 @@ fun FinanceApp(
                 .navigationBarsPadding()
                 .padding(bottom = NavBarBottomMargin),
         )
+    }
     }
 }
