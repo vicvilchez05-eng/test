@@ -5,7 +5,8 @@ Android app (Kotlin, Jetpack Compose, Material 3). Single module `:app`, package
 ## HANDOFF.md is mandatory
 - **Start of every session**: read `HANDOFF.md` ("Estado actual" and "Pendientes") before doing anything.
 - **End of every task**: append a session entry (S-nnn) to `HANDOFF.md`. Any choice made between alternatives gets a decision entry (D-nnn) with *por qué* (context/problem), *para qué* (goal) and what was discarded and why.
-- Never delete history from `HANDOFF.md`. A reverted decision is marked `REVERTIDA` and linked to its replacement. Compact only when Vic asks, and keep every decision intact.
+- A reverted decision is marked `REVERTIDA` and linked to its replacement; do not silently drop it.
+- **Compaction (D-009)**: at session start run `wc -l HANDOFF.md`. If it exceeds 1000 lines, delete the oldest session entries (S-nnn) whose work is fully finished, drop decisions that are reverted or obsolete, and shrink still-relevant decisions from those phases to one line each (id, decision, short why). Stop once the file is under ~600 lines. Note the compacted range in the current session entry. Below 1000 lines, never compact.
 - Write `HANDOFF.md` in Spanish; it is for Vic as much as for Claude.
 - Commit `HANDOFF.md` together with the code change it describes.
 

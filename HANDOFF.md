@@ -1,9 +1,9 @@
 # HANDOFF.md — Diario de proyecto
 
 Documento vivo y compartido entre Vic y Claude. Aquí queda **todo**: qué se hizo, por qué se hizo
-y para qué sirve. Nada se decide sin dejar rastro. Solo se compacta cuando el archivo pese
-demasiado, y siempre conservando las decisiones y su justificación (se resume el detalle, nunca
-se borra el porqué).
+y para qué sirve. Nada se decide sin dejar rastro. Para que no crezca sin límite y se coma el
+contexto de Claude, al superar las **1000 líneas** se borran las fases más antiguas que ya estén
+terminadas (ver "Compactar" abajo y D-009).
 
 ## Cómo usar este archivo
 
@@ -13,8 +13,15 @@ se borra el porqué).
 - **Formato de decisión**: fecha, decisión, por qué (contexto/problema), para qué (objetivo),
   alternativas descartadas y motivo. Si una decisión se revierte, no se borra: se marca como
   `REVERTIDA` con enlace a la nueva.
-- **Compactar**: solo cuando Vic lo pida. Se agrupan sesiones antiguas en un resumen, se mantiene
-  íntegro el registro de decisiones.
+- **Compactar** (regla D-009): al empezar una sesión, `wc -l HANDOFF.md`. Si supera **1000 líneas**:
+  1. Borrar las entradas de sesión (S-nnn) más antiguas, empezando por la primera, **solo si todo
+     lo que describen está terminado** (sin pendientes abiertos que dependan de ellas).
+  2. De las decisiones (D-nnn) de esas fases, borrar las revertidas u obsoletas; las que siguen
+     afectando al código se reducen a una línea: id, decisión y el porqué en pocas palabras.
+  3. Parar en cuanto el archivo baje de ~600 líneas, para no compactar más de lo necesario.
+  4. Anotar en la sesión en curso qué rango se compactó (por ejemplo "compactadas S-001..S-012").
+  "Estado actual" y "Pendientes" siempre reflejan la verdad completa, así que borrar sesiones
+  cerradas no pierde nada que siga importando. Fuera de ese umbral, no se compacta.
 
 ---
 
@@ -119,7 +126,21 @@ se borra el porqué).
 - **Por qué**: petición explícita de Vic. El proyecto avanzará por sesiones separadas en el
   tiempo y con contexto que se pierde; sin registro se repiten errores y se olvidan motivos.
 - **Para qué**: que cualquiera de los dos retome el proyecto en cualquier momento sin perder
-  la pista. Solo se compacta cuando Vic lo pida, preservando siempre las decisiones.
+  la pista.
+- **Actualizada por D-009**: la compactación ya no espera a que Vic la pida; se dispara sola a
+  las 1000 líneas.
+
+### D-009 · 2026-09-07 · Compactación automática a partir de 1000 líneas
+- **Decisión**: cuando `HANDOFF.md` supere 1000 líneas, Claude borra las fases más antiguas ya
+  terminadas hasta bajar de ~600 líneas. Procedimiento exacto en "Cómo usar este archivo".
+- **Por qué**: petición de Vic. Un handoff enorme se lee entero en cada sesión y consume tokens
+  y contexto que hacen falta para trabajar en la app.
+- **Para qué**: mantener el archivo útil y barato de leer sin perder lo que sigue vigente.
+- **Interpretación de "borrar fases"**: se borran las sesiones cerradas completas. Las
+  decisiones que aún condicionan el código no se borran, se comprimen a una línea, porque el
+  porqué es lo que Vic pidió no perder nunca. Si Vic prefiere borrarlas también, se cambia aquí.
+- **Descartado**: compactar solo a petición (D-008 original): obliga a Vic a vigilar el tamaño.
+  Resumir en vez de borrar: el resumen sigue creciendo y no ataja el problema.
 
 ---
 
@@ -152,4 +173,12 @@ se borra el porqué).
 - **Hecho**: creado este archivo con las decisiones D-001 a D-008 y las sesiones S-001 y S-002.
   `CLAUDE.md` actualizado con la regla de lectura/actualización obligatoria. Referencia añadida
   en `README.md`.
+- **Resultado**: commit `03ff3e0` pusheado a `claude/android-personal-setup-hm95yj`.
+
+### S-003 · 2026-09-07 · Regla de compactación automática
+- **Petición de Vic**: "al llegar a las mil líneas hay que ir borrando las primeras fases siempre
+  que esté todo terminado así no te comes tokens ni contexto por un handoff enorme".
+- **Hecho**: procedimiento de compactación escrito en "Cómo usar este archivo", decisión D-009
+  registrada, D-008 marcada como actualizada, regla añadida a `CLAUDE.md` con la comprobación
+  `wc -l` al inicio de sesión.
 - **Resultado**: commit pusheado a `claude/android-personal-setup-hm95yj`.
