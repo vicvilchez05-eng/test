@@ -77,8 +77,7 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 
 ## Pendientes / preguntas abiertas
 
-- [ ] **Vic elige piel** (Esforia o NavyGold) para seguir a la Fase 2. La otra se conserva
-  (D-022) salvo que Vic pida borrarla.
+- [x] Vic eligió: Esforia + estructura de Home de NavyGold (S-009). Fase 2 puede empezar.
 - [ ] Decidir si esta app adopta también la marca Esforia (icono teja morada con "E", splash
   morado, nombre) o solo la identidad visual. Por ahora el icono solo toma el morado `#6C5CE7`.
 - [ ] Decidir si se portan los temas de Esforia (rosa, sakura, lluvia, bosque, nieve, custom) y
@@ -222,7 +221,32 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
   periwinkle/champán/lila), D-018 (iconos Rounded → Outlined). Las tres siguen vigentes en lo
   demás.
 
-### D-022 · 2026-09-07 · Arquitectura de pieles: dos identidades visuales completas conmutables
+### D-024 · 2026-09-07 · Esforia en todo; la Home toma la estructura de NavyGold; NavyGold se borra
+- **Decisión**: una sola identidad (Esforia, D-021). `HomeScreen` se reescribe con la estructura
+  del estudio NavyGold pero con superficies Esforia: fecha + "¡Hola, Vic!" (Sora) + avatar con
+  degradado de marca; `HeroCard` con etiqueta en mayúsculas, cifra Sora 32 y línea de tendencia;
+  `LazyRow` de `SurfaceCard` de 128dp con teja de icono `mossSoft`, nombre y cifra en Plex Mono
+  (negativo en `danger`); `SectionLabel` + `SurfaceCard` con `BarChart`; `SectionLabel` +
+  `SurfaceCard` con filas de transacción (teja `mossSoft`/`emberSoft`, cifra mono, ingreso en
+  `emberText`, separadores `line`). El resto de pantallas queda como en S-007.
+- **Por qué**: Vic: "usaremos el estilo visual de Esforia, pero heredamos la estructura del
+  home de NavyGold, solo la estructura, el aspecto visual es de Esforia, todo lo demás se queda
+  como está y puedes eliminar navygold".
+- **Para qué**: cerrar la Fase 1 con una sola identidad que mantener.
+- **Qué se conserva de NavyGold**: `BarChart`, `DonutChart` y `Sparkline` pasan a
+  `ui/components/Charts.kt` pintados con `Palette.chart` (moss, blue, ember, mossText); harán
+  falta en las fases 3 y 4. `Palette` conserva los alias `positive`/`negative`/`chart`.
+  `docs/design/navy-gold-home-claro-2026-09-07.png` se guarda como referencia de la estructura.
+- **Qué se borra**: `Skin.kt`, `LocalSkin`, paletas y tipografía NavyGold, Inter,
+  `ui/components/navygold/`, `ui/screens/navygold/`, `DockedNavBar`, dos de las tres imágenes
+  del diseño (siguen en el historial de git, commit `0b3c5cb`), strings solo usados por
+  NavyGold.
+- **Datos de muestra**: la Home mantiene cifras ilustrativas (45.820,50 €, Chase, BBVA…) hasta
+  que la Fase 2 traiga modelos. Las demás pantallas muestran ceros/placeholders.
+- **Cierra**: D-022 y D-023 quedan **REVERTIDAS** por esta decisión (la arquitectura de pieles
+  ya no existe; si hiciera falta volver, está en `0b3c5cb`).
+
+### D-022 · 2026-09-07 · Arquitectura de pieles: dos identidades visuales completas conmutables · **REVERTIDA por D-024**
 - **Decisión**: `enum Skin { Esforia, NavyGold }` + `LocalSkin` + `DefaultSkin`. Una piel es
   paleta + tipografía + variantes de componentes + pantallas propias donde la disposición
   difiere. `Palette` gana campos "extra" con valores por defecto que reproducen Esforia
@@ -238,7 +262,7 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 - **Coste conocido**: dos juegos de pantallas en el árbol hasta que Vic elija. Las fuentes de
   ambas pieles van en el APK (Sora+Manrope+Plex Mono ≈ 550 KB, Inter ≈ 880 KB).
 
-### D-023 · 2026-09-07 · Piel NavyGold: traducción del diseño navy/teal/dorado
+### D-023 · 2026-09-07 · Piel NavyGold: traducción del diseño navy/teal/dorado · **REVERTIDA por D-024**
 - **Fuente**: `docs/design/navy-gold-{claro,oscuro,home-claro}-2026-09-07.png`.
 - **Paleta claro**: fondo marfil `#F3EFE4`, banda petróleo `#235A68→#163C4A`, tinta navy
   `#1B2F3B`, acento navy `#1E4C5C` (botones), dorado `#C9A85B` (saludo, subrayado, gráficas),
@@ -514,6 +538,17 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
   de los blobs ajustados en `Glass.kt`. Sin cambios en tarjetas ni barra.
 - **Resultado**: `lintDebug`, `assembleRelease` y 5 tests en verde. 7 capturas enviadas a Vic.
   Commit `0982c65` pusheado a `claude/android-personal-setup-hm95yj`. APK entregado a Vic.
+
+### S-009 · 2026-09-07 · Decisión final de Fase 1: Esforia + estructura de Home de NavyGold
+- **Petición de Vic**: "usaremos el estilo visual de esforia, pero heredamos la estructura del
+  home de navygold, solo la estructura, el aspecto visual es de Esforia, todo lo demás se queda
+  como está y puedes eliminar navygold".
+- **Hecho**: D-024 aplicada. `HomeScreen.kt` reescrito; `Charts.kt` nuevo; NavyGold borrado
+  (código, fuente Inter, dos imágenes); `Palette`/`Type`/`Theme`/`AppNavHost`/`FinanceApp`
+  vuelven a una sola identidad; tests de captura vuelven a 5; strings huérfanos eliminados.
+- **Resultado**: lint (0 errores), release (1,3 MB) y 5 tests en verde. 7 capturas y APK
+  enviados a Vic. Commit pusheado a `claude/android-personal-setup-hm95yj`.
+- **Siguiente**: Fase 2 (modelos de datos, Open Banking sandbox, entrada manual).
 
 ### S-008 · 2026-09-07 · Segunda piel NavyGold, conmutable, sin borrar Esforia
 - **Petición de Vic**: "antes de continuar a la fase 2 quiero descartar otro aspecto visual,

@@ -18,19 +18,14 @@ Android app (Kotlin, Jetpack Compose, Material 3). Single module `:app`, package
 - Always build with the wrapper (`./gradlew`), never the system `gradle`.
 - Filter noise from Gradle output with `grep -v JAVA_TOOL_OPTIONS`.
 
-## Skins (HANDOFF D-022)
-- Two complete visual identities coexist: `Skin.Esforia` and `Skin.NavyGold` (`ui/theme/Skin.kt`, switch with `DefaultSkin`). Never delete one without Vic asking. `LocalSkin` tells components which is active; `AppNavHost`/`FinanceApp` pick screens, background and bar per skin.
-- Esforia screens: `ui/screens/*.kt` with `ui/components/Surfaces.kt`. NavyGold screens: `ui/screens/navygold/` with `ui/components/navygold/`. Shared: `Group`/`GroupRow`/`GroupLabel`/`EsforiaSwitch` (palette-driven).
-- `Palette` has skin extras with Esforia defaults (`headerBand`, `heroGradient`, `heroValueGradient`, `cardGradients`, `navBackground`, `gold`, `positive`, `negative`, `chart`). NavyGold reference: `docs/design/navy-gold-*.png` and HANDOFF D-023. Money style: `moneyStyle()`.
-- Screenshot tests render both skins (`esforia_*`, `navygold_*`).
-
 ## Visual reference: Esforia
 - The visual identity is Esforia's, Vic's other app (`vicvilchez05-eng/esforia-app`, React/Capacitor). It is **read-only reference**: never modify it. Attach with `add_repo` + shallow clone to `/home/user/esforia-app` when you need to check how something is done there.
 - Everything extracted from it lives in `docs/design/identidad-esforia.md` (palette, fonts, surfaces, ambient background, screen structure). **Read it before any UI work.** HANDOFF.md D-021 explains the mapping to this codebase.
 - Tokens: `LocalPalette` (`ui/theme/Palette.kt`) is the source of truth; Material `colorScheme` is derived from it. Fonts: Sora headings, Manrope body, IBM Plex Mono for money (`MonoText`).
 - Surfaces (`ui/components/Surfaces.kt`): `SurfaceCard` (opaque, on purpose), `HeroCard` + `HeroStat`, `Group` + `GroupRow` + `GroupLabel`, `SectionLabel`, `Chip`, `OutlineButton`, `CircleIconButton`, `EsforiaSwitch`. `GlassSurface` is only for the floating bar. Page tops use `PageHeader` (eyebrow + left-aligned Sora title + circle actions). Screens use `ScreenScaffold`.
 - Background is `AmbientBackground` with a per-destination `AmbientTone`; blobs stay in the margins and blurred, never hard-edged.
-- The earlier image guide (`docs/design/guia-visual-vic-2026-09-07.png`) is superseded; keep it only as history.
+- Home's structure (greeting + avatar, centred hero with trend, account tile strip, monthly bars, recent transactions) comes from the NavyGold study (`docs/design/navy-gold-home-claro-2026-09-07.png`, HANDOFF D-024); its look is Esforia's. Charts live in `ui/components/Charts.kt` (`BarChart`, `DonutChart`, `Sparkline`) and take colours from `Palette.chart`.
+- The earlier image guide (`docs/design/guia-visual-vic-2026-09-07.png`) is superseded; keep it only as history. The NavyGold skin was removed in D-024 (recoverable from commit `0b3c5cb`).
 
 ## Conventions
 - Dependency versions live only in `gradle/libs.versions.toml`.

@@ -7,7 +7,6 @@
     <string name="nav_settings">Settings</string>
     <string name="nav_profile">Profile</string>
 
-    <string name="home_title">Home</string>
     <string name="accounts_title">Accounts</string>
     <string name="accounts_eyebrow">Linked accounts</string>
     <string name="balance_title">Total Balance</string>
@@ -18,17 +17,12 @@
     <string name="profile_eyebrow">Account</string>
     <string name="profile_personal_use">Personal use</string>
 
-    <string name="action_sync">Sync</string>
-    <string name="action_notifications">Notifications</string>
     <string name="action_add_account">Add account</string>
 
     <string name="this_month">this month</string>
-    <string name="hero_net_available">Net available</string>
     <string name="hero_all_accounts">Across all accounts</string>
     <string name="hero_net_worth">Net worth</string>
     <string name="stat_income">Income</string>
-    <string name="stat_expenses">Expenses</string>
-    <string name="stat_savings">Savings</string>
     <string name="stat_spending">Spending</string>
     <string name="stat_banks">Banks</string>
     <string name="stat_cards">Cards</string>
@@ -36,11 +30,7 @@
     <string name="stat_weekly_spending">Weekly spending</string>
     <string name="stat_monthly_income">Monthly income</string>
 
-    <string name="latest_transactions">Latest transactions</string>
-    <string name="open_accounts">Open accounts</string>
 
-    <string name="section_this_week">This week</string>
-    <string name="section_more">More</string>
     <string name="section_linked">Linked</string>
     <string name="section_manual">Manual</string>
     <string name="section_weekly_summary">Weekly summary</string>
@@ -53,13 +43,6 @@
     <string name="group_account">Account</string>
     <string name="group_privacy">Privacy</string>
 
-    <string name="row_budgets">Budgets</string>
-    <string name="row_upcoming">Upcoming</string>
-    <string name="row_insights">Insights</string>
-    <string name="row_recurring">Recurring payments</string>
-    <string name="row_savings_goals">Savings goals</string>
-    <string name="row_categories">Categories</string>
-    <string name="row_quick_add">Quick add</string>
     <string name="row_linked_banks">Linked banks</string>
     <string name="row_cards">Cards</string>
     <string name="row_cash">Cash</string>
@@ -87,14 +70,8 @@
     <string name="placeholder_chart">Chart · %1$s</string>
     <string name="greeting_hello">Hello, %1$s!</string>
     <string name="hero_total_balance">Total balance</string>
-    <string name="hero_total_in_accounts">Total in accounts</string>
-    <string name="hero_account_balance">Account balance</string>
-    <string name="hero_expenses_month">Expenses this month (%1$s)</string>
     <string name="section_monthly_expenses">Monthly expenses</string>
     <string name="section_recent_transactions">Recent transactions</string>
-    <string name="add_account">Add account</string>
-    <string name="view_full_report">View full report</string>
-    <string name="filter_by_category">Filter by category</string>
     <string name="cat_housing">Housing</string>
     <string name="cat_food">Food</string>
     <string name="cat_leisure">Leisure</string>
@@ -102,5 +79,4 @@
     <string name="tx_rent">Rent</string>
     <string name="tx_fuel">Fuel</string>
     <string name="tx_salary">Salary</string>
-    <string name="tx_gift">Birthday gift</string>
 </resources>
