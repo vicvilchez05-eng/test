@@ -58,6 +58,9 @@ terminadas (ver "Compactar" abajo y D-009).
   Balance completo, exportación CSV y PDF con hoja de compartir.
 - **Las 4 fases del brief están hechas.** Después: deslizar entre pestañas (S-013, D-030),
   revisión de bugs, y **lectura de notificaciones de BBVA** con buzón de revisión (S-014, D-031).
+- **Icono de la app** (S-015, D-032): el que envió Vic (`docs/design/icono-app-2026-09-07.png`),
+  convertido en icono adaptativo (capas PNG en `mipmap-*dpi`, generadas con
+  `tools/make_launcher_icon.py`). Sin splash propio todavía.
 - **Pendiente de Vic**: conceder el acceso a notificaciones en el móvil y, cuando llegue un aviso
   real de BBVA, pegarlo en Ajustes → "Leer notificaciones del banco" → "Pruébalo con un texto"
   para validar el analizador (los formatos son supuestos). Rama sin fusionar en `main`.
@@ -88,8 +91,8 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 ## Pendientes / preguntas abiertas
 
 - [x] Vic eligió: Esforia + estructura de Home de NavyGold (S-009). Fase 2 puede empezar.
-- [ ] Decidir si esta app adopta también la marca Esforia (icono teja morada con "E", splash
-  morado, nombre) o solo la identidad visual. Por ahora el icono solo toma el morado `#6C5CE7`.
+- [x] Marca propia, no la de Esforia: Vic envió su propio icono (S-015, D-032). Queda decidir
+  splash y nombre definitivo.
 - [ ] Decidir si se portan los temas de Esforia (rosa, sakura, lluvia, bosque, nieve, custom) y
   sus decoraciones. Hoy solo existe el tema por defecto "ritmo" en claro y oscuro.
 - [ ] Decidir nombre definitivo y paquete (`applicationId`), renombrar `com.personal.app`.
@@ -106,7 +109,7 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
   mes. Vic dijo "mejor lo dejamos así"; queda anotado por si se retoma.
 - [ ] Ideas de continuación (no pedidas): presupuestos por categoría, metas de ahorro,
   recordatorio de registro, keystore propio para actualizar sin desinstalar (D-005),
-  icono/splash propios, temas de Esforia.
+  splash propio (el icono ya existe, D-032), temas de Esforia.
 - [x] El interruptor "Notificaciones" muerto se ha sustituido por la lectura de notificaciones
   del banco (D-031). Recordatorios/resúmenes push siguen sin existir; decidir en el futuro.
 - [ ] **Validar el analizador BBVA con avisos reales** (Vic no tenía ninguno a mano). Cada
@@ -254,6 +257,33 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 - **Actualiza**: D-012 (blobs planos → gotas 3D), D-015 (paleta índigo/violeta/teal/rosa →
   periwinkle/champán/lila), D-018 (iconos Rounded → Outlined). Las tres siguen vigentes en lo
   demás.
+
+### D-032 · 2026-09-08 · Icono de launcher a partir de la imagen de Vic, como icono adaptativo por capas
+- **Decisión**: la imagen que envió Vic (teja redondeada azul marino → verde con borde dorado
+  y logo de círculo + flecha en verde y oro) se guarda en `docs/design/icono-app-2026-09-07.png`
+  y se convierte en un **icono adaptativo** de tres capas PNG en `mipmap-{m,h,xh,xxh,xxxh}dpi`:
+  `ic_launcher_background` (solo el degradado del interior de la teja, extendido por los bordes
+  hasta los 108dp), `ic_launcher_foreground` (solo el logo, con transparencia, centrado en la
+  zona segura de 66dp) e `ic_launcher_monochrome` (silueta blanca del logo para los iconos
+  temáticos de Android 13+). `mipmap-anydpi-v26/ic_launcher.xml` apunta a ellas; se borran el
+  vector del rombo y `values/colors.xml` (`ic_launcher_background` ya no se usa).
+- **Cómo se generó**: `tools/make_launcher_icon.py` (Pillow + numpy): recorta el interior de la
+  teja (entre las dos líneas doradas), ajusta un polinomio cúbico al degradado usando solo los
+  píxeles sin logo, y toma como logo todo píxel que se aparta de ese degradado (alfa suave entre
+  30 y 75 de distancia RGB). El script es reproducible: cualquier retoque del icono se hace
+  cambiando la imagen de `docs/design` y volviendo a ejecutarlo, no editando PNGs a mano.
+- **Por qué**: Android recorta el icono con la máscara del launcher (círculo, squircle, gota…),
+  así que meter la imagen tal cual (teja con borde dorado sobre fondo claro) saldría con esquinas
+  claras cortadas y el borde dorado partido. Separar fondo y logo es lo que la plataforma espera.
+- **Para qué**: que el icono se vea bien en cualquier launcher (OPPO/ColorOS incluido), con
+  paralaje y con iconos temáticos, y que sea reproducible sin herramientas gráficas.
+- **Descartado**: (a) PNG opaco único en `ic_launcher` sin adaptativo: el minSdk 26 lo permite
+  pero pierde máscaras, paralaje y monocromo; (b) vectorizar el logo a `VectorDrawable`: el
+  trazado a mano no sería fiel al render de Vic; (c) mantener el borde dorado: no se puede
+  garantizar bajo máscaras de forma desconocida, así que se queda fuera (queda en la imagen de
+  referencia por si se quiere para un splash).
+- **Límites**: el logo ocupa ~52 % del lienzo y cabe dentro de la zona segura con margen; en
+  máscara circular la punta de la flecha queda a ~4dp del borde visible. Sin splash propio.
 
 ### D-031 · 2026-09-08 · Lectura de notificaciones bancarias con buzón de revisión (BBVA)
 - **Decisión**: `BankNotificationListener` (`NotificationListenerService`, permiso
@@ -700,6 +730,18 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
   de los blobs ajustados en `Glass.kt`. Sin cambios en tarjetas ni barra.
 - **Resultado**: `lintDebug`, `assembleRelease` y 5 tests en verde. 7 capturas enviadas a Vic.
   Commit `0982c65` pusheado a `claude/android-personal-setup-hm95yj`. APK entregado a Vic.
+
+### S-015 · 2026-09-08 · Icono de la app
+- **Petición de Vic**: "usa este icono para la app" (imagen adjunta).
+- **Hecho** (D-032): imagen guardada en `docs/design/icono-app-2026-09-07.png`; script
+  `tools/make_launcher_icon.py` que produce las tres capas del icono adaptativo en las cinco
+  densidades; `mipmap-anydpi-v26/ic_launcher.xml` actualizado; borrados
+  `drawable/ic_launcher_foreground.xml` y `values/colors.xml`. CLAUDE.md anota cómo regenerar.
+- **Comprobado**: vista previa con máscara circular y redondeada (logo completo dentro de la
+  zona segura), capa monocroma limpia; `assembleDebug`, `lintDebug` (0 errores) y
+  `assembleRelease` en verde. APK `PersonalApp-v0.3-icono.apk` enviado (2,3 MB; los PNG suman
+  ~350 KB en fuentes, menos en el APK).
+- **Nota**: el icono se ve al reinstalar; algunos launchers cachean el anterior hasta reiniciar.
 
 ### S-014 · 2026-09-08 · Lectura de notificaciones de BBVA
 - **Petición de Vic**: "¿al final hiciste lo de leer las notificaciones para registrar los
