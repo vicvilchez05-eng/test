@@ -31,10 +31,15 @@ terminadas (ver "Compactar" abajo y D-009).
 - **Repo**: `vicvilchez05-eng/test`, rama de trabajo `claude/android-personal-setup-hm95yj`.
 - **Qué es**: app de **finanzas personales** (ver "Plan por fases"). Kotlin + Jetpack Compose +
   Material 3.
-- **Fase 1 terminada y reestilizada según la guía visual de Vic** (S-005, D-019), pendiente de
-  su feedback: fondo de gotas de cristal 3D animadas, tarjetas blancas esmeriladas, cabeceras en
-  versalitas, tipografía Inter, barra inferior blanca compacta con círculo elevado, y las 5
-  pantallas vacías (Home, Accounts, Total Balance, Settings, Profile) con navegación.
+- **Fase 1 terminada y reestilizada según la guía visual de Vic** (S-005, D-019) con los blobs
+  convertidos en resplandores desenfocados al estilo Esforia (S-006, D-020), pendiente de su
+  feedback: fondo lavanda con resplandores suaves animados, tarjetas blancas esmeriladas,
+  cabeceras en versalitas, tipografía Inter, barra inferior blanca compacta con círculo elevado,
+  y las 5 pantallas vacías (Home, Accounts, Total Balance, Settings, Profile) con navegación.
+- **Referencia de código**: el repo `vicvilchez05-eng/esforia-app` (web/Capacitor) de Vic es la
+  referencia de "cómo se hace" para efectos de fondo y glass. Se añade a la sesión con
+  `add_repo` y se clona en `/home/user/esforia-app`. Archivos clave:
+  `src/components/ui/AmbientBackground.tsx` y `src/styles/app.css` (`.ambient-blob`, `.glass`).
 - **Guía visual de referencia**: `docs/design/guia-visual-vic-2026-09-07.png`. Toda decisión
   de estilo se contrasta con ella. Léela (Read) antes de tocar la UI.
 - **Verificación**: compila (debug y release), tests y lint en verde, y capturas de pantalla
@@ -68,7 +73,7 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 
 ## Pendientes / preguntas abiertas
 
-- [ ] **Feedback de Vic sobre la Fase 1 reestilizada** (S-005) antes de empezar la Fase 2.
+- [ ] **Feedback de Vic sobre la Fase 1 reestilizada** (S-005 + S-006) antes de empezar la Fase 2.
 - [ ] Decidir nombre definitivo y paquete (`applicationId`), renombrar `com.personal.app`.
 - [ ] Fase 2: elegir proveedor de Open Banking sandbox (Plaid vs Tink) y si Vic tiene cuenta.
 - [ ] Probar en un móvil real: rendimiento del fondo (blur + 4 gradientes por frame) y tacto del
@@ -175,7 +180,7 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 - **Descartado**: compactar solo a petición (D-008 original): obliga a Vic a vigilar el tamaño.
   Resumir en vez de borrar: el resumen sigue creciendo y no ataja el problema.
 
-### D-019 · 2026-09-07 · Giro visual: se adopta la guía de Vic (lavanda, gotas 3D, blanco esmerilado)
+### D-019 · 2026-09-07 · Giro visual: se adopta la guía de Vic (lavanda, gotas 3D, blanco esmerilado) · **"Fondo" revertido por D-020**
 - **Decisión**: se abandona el look oscuro y saturado de S-004 y se reconstruye la capa visual
   siguiendo `docs/design/guia-visual-vic-2026-09-07.png`:
   - **Fondo**: base lavanda muy clara (`#E2E5F6`) con 5 gotas de cristal en periwinkle, champán
@@ -207,6 +212,29 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 - **Actualiza**: D-012 (blobs planos → gotas 3D), D-015 (paleta índigo/violeta/teal/rosa →
   periwinkle/champán/lila), D-018 (iconos Rounded → Outlined). Las tres siguen vigentes en lo
   demás.
+
+### D-020 · 2026-09-07 · Blobs como resplandores desenfocados (receta de Esforia), no como gotas 3D
+- **Decisión**: cada blob es un degradado radial (núcleo claro → cuerpo → profundo al 55 % →
+  transparente) que se funde por completo dentro de su propio radio, sin borde. En API 31+ se
+  añade `Modifier.blur(36dp)` a todo el canvas; en API 26–30 el degradado ya es suave. Deriva
+  Lissajous, bamboleo de rotación/aplastamiento y **respiración de opacidad** (±18 %) en el
+  mismo ciclo. Blobs algo mayores (radio 0,24–0,42 del lado corto) y alfa 0,85 claro / 0,60
+  oscuro.
+- **Por qué**: Vic: "los blobs deben estar detrás de un blur, puedes fijarte cómo es Esforia en
+  su repo". En Esforia cada `.ambient-blob` lleva `filter: blur(46px)` y pulsa entre 0,45 y 0,8
+  de opacidad en ciclos de 26–32 s; las tarjetas son alfa plano encima y solo unos pocos
+  elementos usan `backdrop-filter`. Las gotas 3D de D-019 tenían bordes nítidos que se veían a
+  través de las tarjetas translúcidas, que es justo lo que no gustó.
+- **Para qué**: que lo que se ve a través de una tarjeta sea siempre color difuso, de modo que
+  la translucidez lea como cristal esmerilado sin pagar un backdrop blur real por tarjeta.
+- **Descartado**: backdrop blur real (`RenderEffect`, solo API 31+, una pasada extra por
+  tarjeta; Esforia también lo evita salvo en 4 elementos); render a bitmap de baja resolución
+  como blur universal (más código para el mismo resultado que el degradado suave).
+- **Actualiza**: D-019, apartado "Fondo": el sombreado de cuenta de vidrio en 4 pasadas queda
+  **REVERTIDO** por esta decisión; el resto de D-019 sigue vigente. La guía visual de Vic
+  muestra gotas 3D, pero su instrucción posterior (blur) prevalece.
+- **Limitación conocida**: en las capturas de Robolectric `blur = false`, así que muestran el
+  degradado sin el blur extra de API 31+. En móvil real se ve aún más suave.
 
 ### D-010 · 2026-09-07 · "Glassmorphism CSS" se traduce a modificadores Compose, sin blur de fondo real
 - **Decisión**: `GlassSurface` = relleno degradado translúcido + borde degradado de 1dp (más
@@ -376,4 +404,13 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
   3. Tarjetas oscuras demasiado transparentes → relleno azul marino al 82 % en vez de blanco al 12 %.
   4. Lint `UnusedResources` (`home_subtitle`) → eliminado.
 - **Resultado**: `assembleDebug`, `assembleRelease` (1,9 MB), 5 tests y `lintDebug` en verde.
-  7 capturas enviadas a Vic. Commit pusheado a `claude/android-personal-setup-hm95yj`.
+  7 capturas enviadas a Vic. Commit `cb1369d` pusheado a `claude/android-personal-setup-hm95yj`.
+
+### S-006 · 2026-09-07 · Blobs detrás de un blur, al estilo Esforia
+- **Petición de Vic**: "los blobs deben estar detrás de un blur, puedes fijarte cómo es Esforia
+  en su repo".
+- **Hecho**: añadido `esforia-app` a la sesión y leídos `AmbientBackground.tsx` y `app.css`.
+  `BlobBackground` reescrito según D-020 (`drawGlow` en vez de `drawBead`), layout y alfas
+  de los blobs ajustados en `Glass.kt`. Sin cambios en tarjetas ni barra.
+- **Resultado**: `lintDebug`, `assembleRelease` y 5 tests en verde. 7 capturas enviadas a Vic.
+  Commit pusheado a `claude/android-personal-setup-hm95yj`.

@@ -15,9 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
@@ -30,13 +28,15 @@ import kotlin.math.min
 import kotlin.math.sin
 
 /**
- * Full-screen background: a pale ground with a few large glossy "glass bead" blobs that drift
- * very slowly, like the guide's 3D drops.
+ * Full-screen background: a pale ground with a few large, heavily blurred colour glows that
+ * drift and breathe very slowly. Same recipe as Esforia's ambient layer (`.ambient-blob`:
+ * `filter: blur(46px)`, 26–32 s drift loops, opacity pulsing between ~0.45 and ~0.8).
  *
- * Each blob is an ellipse shaded in four passes: body gradient lit from the top-left (light →
- * body → deep at the rim), a soft rim fade, a broad sheen and a small specular dot. Motion is a
- * Lissajous drift plus a gentle wobble of rotation and squash so the drop feels liquid.
- * A light canvas blur (API 31+) takes the digital edge off; older devices skip it.
+ * Each blob is a soft radial gradient that fades to fully transparent well inside its own
+ * radius, so it has no edge even without a blur. On API 31+ the whole canvas is additionally
+ * blurred, which smooths the last trace of the gradient rings; older devices skip that and
+ * still look right. Cards sit on top as plain translucent white, which reads as frosted glass
+ * because what shows through is already out of focus.
  *
  * @param animated false for screenshots/tests so every frame is identical.
  * @param blur     false where RenderEffect is unavailable (Robolectric).
@@ -55,78 +55,53 @@ fun BlobBackground(
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
-                .then(if (blur) Modifier.blur(3.dp, BlurredEdgeTreatment.Unbounded) else Modifier),
+                .then(if (blur) Modifier.blur(36.dp, BlurredEdgeTreatment.Unbounded) else Modifier),
         ) {
             val minSide = min(size.width, size.height)
             blobs.forEachIndexed { i, blob ->
                 val t = (progress[i] + blob.phase) * 2f * PI.toFloat()
                 val cx = (blob.center.x + blob.amplitude.x * cos(t)) * size.width
                 val cy = (blob.center.y + blob.amplitude.y * sin(2f * t)) * size.height
-                val rx = blob.radius * minSide * (1f + 0.04f * sin(t))
-                val ry = rx * blob.aspect * (1f - 0.04f * sin(t))
-                val rot = blob.rotation + 6f * sin(t * 0.5f)
-                drawBead(blob, Offset(cx, cy), rx, ry, rot)
+                val rx = blob.radius * minSide * (1f + 0.07f * sin(t))
+                val ry = rx * blob.aspect * (1f - 0.05f * sin(t))
+                val rot = blob.rotation + 8f * sin(t * 0.5f)
+                // Breathe: opacity swings ±18 % around the spec value over the same cycle.
+                val breathe = 1f + 0.18f * sin(t + 1.3f)
+                drawGlow(blob, Offset(cx, cy), rx, ry, rot, breathe)
             }
         }
     }
 }
 
-private fun DrawScope.drawBead(blob: BlobSpec, c: Offset, rx: Float, ry: Float, rotation: Float) {
-    val a = blob.alpha
+private fun DrawScope.drawGlow(blob: BlobSpec, c: Offset, rx: Float, ry: Float, rotation: Float, breathe: Float) {
+    val a = (blob.alpha * breathe).coerceIn(0f, 1f)
     rotate(degrees = rotation, pivot = c) {
-        // Draw everything as a circle of radius rx, squashed vertically to the aspect ratio.
         scale(scaleX = 1f, scaleY = ry / rx, pivot = c) {
-            // 1. Body: lit from the top-left, deepening towards the lower-right rim.
+            // Main glow: light core, body colour, then a long fade to nothing.
             drawCircle(
                 brush = Brush.radialGradient(
                     colorStops = arrayOf(
                         0.00f to blob.light.copy(alpha = a),
-                        0.30f to blob.body.copy(alpha = a),
-                        0.78f to blob.deep.copy(alpha = a),
-                        0.97f to blob.deep.copy(alpha = a),
+                        0.28f to blob.body.copy(alpha = a),
+                        0.60f to blob.deep.copy(alpha = a * 0.55f),
                         1.00f to blob.deep.copy(alpha = 0f),
                     ),
-                    center = c + Offset(-rx * 0.38f, -rx * 0.42f),
-                    radius = rx * 1.55f,
-                ),
-                radius = rx,
-                center = c,
-            )
-            // 2. Refraction band: a lighter crescent near the lower-right edge, like thick glass.
-            drawCircle(
-                brush = Brush.radialGradient(
-                    colorStops = arrayOf(
-                        0.66f to Color.Transparent,
-                        0.84f to blob.light.copy(alpha = 0.45f * a),
-                        0.96f to Color.Transparent,
-                    ),
-                    center = c + Offset(rx * 0.10f, rx * 0.12f),
+                    center = c,
                     radius = rx,
                 ),
                 radius = rx,
                 center = c,
             )
-            // 3. Broad sheen across the upper-left.
-            drawOval(
-                brush = Brush.radialGradient(
-                    colors = listOf(Color.White.copy(alpha = 0.55f * a), Color.White.copy(alpha = 0f)),
-                    center = c + Offset(-rx * 0.30f, -rx * 0.45f),
-                    radius = rx * 0.75f,
-                ),
-                topLeft = c - Offset(rx, rx),
-                size = Size(rx * 2, rx * 2),
-            )
-            // 4. Specular dot.
-            val dotR = rx * 0.16f
-            val dotC = c + Offset(-rx * 0.42f, -rx * 0.52f)
+            // A hint of volume that survives the blur: a lighter cloud off to the upper-left.
+            val hc = c + Offset(-rx * 0.22f, -rx * 0.26f)
             drawCircle(
                 brush = Brush.radialGradient(
-                    colors = listOf(Color.White.copy(alpha = 0.95f * a), Color.White.copy(alpha = 0f)),
-                    center = dotC,
-                    radius = dotR,
+                    colors = listOf(blob.light.copy(alpha = a * 0.55f), blob.light.copy(alpha = 0f)),
+                    center = hc,
+                    radius = rx * 0.55f,
                 ),
-                radius = dotR,
-                center = dotC,
+                radius = rx * 0.55f,
+                center = hc,
             )
         }
     }

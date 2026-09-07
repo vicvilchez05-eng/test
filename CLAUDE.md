@@ -21,6 +21,7 @@ Android app (Kotlin, Jetpack Compose, Material 3). Single module `:app`, package
 ## Visual reference
 - The look is defined by Vic's guide at `docs/design/guia-visual-vic-2026-09-07.png` (Read it before any UI work) and by HANDOFF.md D-019. Light theme is primary; dark is a translation.
 - Font is Inter (`ui/theme/Type.kt`); text is navy on white frosted cards; screen titles are tracked small caps via `ScreenHeader`; grouped lists use `GlassRowGroup`.
+- Background blobs are soft blurred glows, never hard-edged shapes (HANDOFF.md D-020). The reference implementation is Vic's `vicvilchez05-eng/esforia-app` (`src/components/ui/AmbientBackground.tsx`, `.ambient-blob` and `.glass` in `src/styles/app.css`); attach it with `add_repo` when you need to check how an effect is done there.
 
 ## Conventions
 - Dependency versions live only in `gradle/libs.versions.toml`.

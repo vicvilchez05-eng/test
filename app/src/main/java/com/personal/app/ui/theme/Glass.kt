@@ -8,8 +8,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * One glossy 3D blob of the background. Positions and sizes are fractions of the canvas.
- * A blob is an ellipse shaded like a glass bead: light side, body, shadow side, specular dot.
+ * One soft colour glow of the background. Positions and sizes are fractions of the canvas.
+ * The three colours are the gradient stops: light core → body → deep, fading to transparent.
  */
 @Immutable
 data class BlobSpec(
@@ -60,11 +60,11 @@ private data class Layout(
 // Placement echoes the guide: a big periwinkle drop top-left, champagne top-right, a lilac
 // drop mid-left, periwinkle bottom-right, champagne bottom-left. Mostly out of the way of cards.
 private val layout = listOf(
-    Layout(0.34f, 1.25f, -25f, Offset(0.08f, 0.16f), Offset(0.05f, 0.04f), 29_000, 0.00f),
-    Layout(0.26f, 0.85f, 20f, Offset(0.92f, 0.10f), Offset(0.04f, 0.05f), 35_000, 0.30f),
-    Layout(0.20f, 1.10f, 40f, Offset(0.15f, 0.52f), Offset(0.06f, 0.05f), 24_000, 0.55f),
-    Layout(0.36f, 0.90f, -10f, Offset(0.95f, 0.70f), Offset(0.05f, 0.06f), 33_000, 0.15f),
-    Layout(0.24f, 1.20f, 30f, Offset(0.12f, 0.94f), Offset(0.05f, 0.04f), 27_000, 0.75f),
+    Layout(0.40f, 1.25f, -25f, Offset(0.06f, 0.14f), Offset(0.06f, 0.05f), 29_000, 0.00f),
+    Layout(0.32f, 0.85f, 20f, Offset(0.94f, 0.08f), Offset(0.05f, 0.06f), 35_000, 0.30f),
+    Layout(0.24f, 1.10f, 40f, Offset(0.12f, 0.52f), Offset(0.07f, 0.06f), 24_000, 0.55f),
+    Layout(0.42f, 0.90f, -10f, Offset(0.96f, 0.70f), Offset(0.06f, 0.07f), 33_000, 0.15f),
+    Layout(0.30f, 1.20f, 30f, Offset(0.10f, 0.96f), Offset(0.06f, 0.05f), 27_000, 0.75f),
 )
 
 private fun blobs(alpha: Float, dark: Boolean = false): List<BlobSpec> {
@@ -96,7 +96,7 @@ fun lightGlass(): GlassTokens = GlassTokens(
     navSelectedBackground = Color.White,
     navSelectedForeground = AppColors.Navy,
     navUnselected = AppColors.NavyMuted,
-    blobs = blobs(alpha = 0.95f),
+    blobs = blobs(alpha = 0.85f),
 )
 
 fun darkGlass(): GlassTokens = GlassTokens(
@@ -115,7 +115,7 @@ fun darkGlass(): GlassTokens = GlassTokens(
     navSelectedBackground = Color.White.copy(alpha = 0.92f),
     navSelectedForeground = AppColors.Navy,
     navUnselected = AppColors.SnowMuted,
-    blobs = blobs(alpha = 0.55f, dark = true),
+    blobs = blobs(alpha = 0.60f, dark = true),
 )
 
 val LocalGlass = staticCompositionLocalOf { lightGlass() }
