@@ -15,9 +15,13 @@ import androidx.compose.runtime.CompositionLocalProvider
 @Composable
 fun PersonalAppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    skin: Skin = DefaultSkin,
     content: @Composable () -> Unit,
 ) {
-    val p = if (darkTheme) DarkPalette else LightPalette
+    val p = when (skin) {
+        Skin.Esforia -> if (darkTheme) DarkPalette else LightPalette
+        Skin.NavyGold -> if (darkTheme) NavyGoldDarkPalette else NavyGoldLightPalette
+    }
     val scheme = if (darkTheme) {
         darkColorScheme(
             primary = p.moss, onPrimary = p.onAccent, primaryContainer = p.mossSoft, onPrimaryContainer = p.mossText,
@@ -35,7 +39,7 @@ fun PersonalAppTheme(
             error = p.danger,
         )
     }
-    CompositionLocalProvider(LocalPalette provides p) {
-        MaterialTheme(colorScheme = scheme, typography = AppTypography, content = content)
+    CompositionLocalProvider(LocalPalette provides p, LocalSkin provides skin) {
+        MaterialTheme(colorScheme = scheme, typography = typographyFor(skin), content = content)
     }
 }

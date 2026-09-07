@@ -18,6 +18,12 @@ Android app (Kotlin, Jetpack Compose, Material 3). Single module `:app`, package
 - Always build with the wrapper (`./gradlew`), never the system `gradle`.
 - Filter noise from Gradle output with `grep -v JAVA_TOOL_OPTIONS`.
 
+## Skins (HANDOFF D-022)
+- Two complete visual identities coexist: `Skin.Esforia` and `Skin.NavyGold` (`ui/theme/Skin.kt`, switch with `DefaultSkin`). Never delete one without Vic asking. `LocalSkin` tells components which is active; `AppNavHost`/`FinanceApp` pick screens, background and bar per skin.
+- Esforia screens: `ui/screens/*.kt` with `ui/components/Surfaces.kt`. NavyGold screens: `ui/screens/navygold/` with `ui/components/navygold/`. Shared: `Group`/`GroupRow`/`GroupLabel`/`EsforiaSwitch` (palette-driven).
+- `Palette` has skin extras with Esforia defaults (`headerBand`, `heroGradient`, `heroValueGradient`, `cardGradients`, `navBackground`, `gold`, `positive`, `negative`, `chart`). NavyGold reference: `docs/design/navy-gold-*.png` and HANDOFF D-023. Money style: `moneyStyle()`.
+- Screenshot tests render both skins (`esforia_*`, `navygold_*`).
+
 ## Visual reference: Esforia
 - The visual identity is Esforia's, Vic's other app (`vicvilchez05-eng/esforia-app`, React/Capacitor). It is **read-only reference**: never modify it. Attach with `add_repo` + shallow clone to `/home/user/esforia-app` when you need to check how something is done there.
 - Everything extracted from it lives in `docs/design/identidad-esforia.md` (palette, fonts, surfaces, ambient background, screen structure). **Read it before any UI work.** HANDOFF.md D-021 explains the mapping to this codebase.

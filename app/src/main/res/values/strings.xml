@@ -85,4 +85,22 @@
     <string name="phase_4">Phase 4</string>
     <string name="placeholder_phase">Coming in %1$s</string>
     <string name="placeholder_chart">Chart · %1$s</string>
+    <string name="greeting_hello">Hello, %1$s!</string>
+    <string name="hero_total_balance">Total balance</string>
+    <string name="hero_total_in_accounts">Total in accounts</string>
+    <string name="hero_account_balance">Account balance</string>
+    <string name="hero_expenses_month">Expenses this month (%1$s)</string>
+    <string name="section_monthly_expenses">Monthly expenses</string>
+    <string name="section_recent_transactions">Recent transactions</string>
+    <string name="add_account">Add account</string>
+    <string name="view_full_report">View full report</string>
+    <string name="filter_by_category">Filter by category</string>
+    <string name="cat_housing">Housing</string>
+    <string name="cat_food">Food</string>
+    <string name="cat_leisure">Leisure</string>
+    <string name="cat_transport">Transport</string>
+    <string name="tx_rent">Rent</string>
+    <string name="tx_fuel">Fuel</string>
+    <string name="tx_salary">Salary</string>
+    <string name="tx_gift">Birthday gift</string>
 </resources>

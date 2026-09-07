@@ -10,6 +10,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.personal.app.ui.theme.PersonalAppTheme
+import com.personal.app.ui.theme.Skin
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -28,41 +29,79 @@ class ScreenshotTest {
     @get:Rule
     val compose = createComposeRule()
 
-    private fun setApp(dark: Boolean) {
+    private fun setApp(dark: Boolean, skin: Skin) {
         compose.setContent {
-            PersonalAppTheme(darkTheme = dark) {
+            PersonalAppTheme(darkTheme = dark, skin = skin) {
                 FinanceApp(animatedBackground = false, blurBackground = false)
             }
         }
     }
 
+    private fun prefix(skin: Skin) = skin.name.lowercase()
+
+    // ---- Esforia skin ----
+
     @Test
-    fun home_dark() {
-        setApp(dark = true)
-        compose.onRoot().captureRoboImage("screenshots/home_dark.png")
+    fun esforia_home_dark() {
+        setApp(dark = true, Skin.Esforia)
+        compose.onRoot().captureRoboImage("screenshots/esforia_home_dark.png")
     }
 
     @Test
-    fun home_light() {
-        setApp(dark = false)
-        compose.onRoot().captureRoboImage("screenshots/home_light.png")
+    fun esforia_home_light() {
+        setApp(dark = false, Skin.Esforia)
+        compose.onRoot().captureRoboImage("screenshots/esforia_home_light.png")
     }
 
     @Test
-    fun home_light_scrolled_navbar_collapsed() {
-        setApp(dark = false)
-        compose.onNodeWithTag("screen_list").performTouchInput { swipeUp() }
-        compose.waitForIdle()
-        compose.onRoot().captureRoboImage("screenshots/home_light_scrolled.png")
-    }
-
-    @Test
-    fun other_tabs_light() {
-        setApp(dark = false)
+    fun esforia_other_tabs_light() {
+        setApp(dark = false, Skin.Esforia)
         listOf("accounts", "balance", "settings", "profile").forEach { route ->
             compose.onNodeWithTag("nav_$route").performClick()
             compose.waitForIdle()
-            compose.onRoot().captureRoboImage("screenshots/${route}_light.png")
+            compose.onRoot().captureRoboImage("screenshots/esforia_${route}_light.png")
+        }
+    }
+
+    // ---- NavyGold skin ----
+
+    @Test
+    fun navygold_home_dark() {
+        setApp(dark = true, Skin.NavyGold)
+        compose.onRoot().captureRoboImage("screenshots/navygold_home_dark.png")
+    }
+
+    @Test
+    fun navygold_home_light() {
+        setApp(dark = false, Skin.NavyGold)
+        compose.onRoot().captureRoboImage("screenshots/navygold_home_light.png")
+    }
+
+    @Test
+    fun navygold_home_light_scrolled_navbar_collapsed() {
+        setApp(dark = false, Skin.NavyGold)
+        compose.onNodeWithTag("screen_list").performTouchInput { swipeUp() }
+        compose.waitForIdle()
+        compose.onRoot().captureRoboImage("screenshots/navygold_home_light_scrolled.png")
+    }
+
+    @Test
+    fun navygold_other_tabs_light() {
+        setApp(dark = false, Skin.NavyGold)
+        listOf("accounts", "balance", "settings", "profile").forEach { route ->
+            compose.onNodeWithTag("nav_$route").performClick()
+            compose.waitForIdle()
+            compose.onRoot().captureRoboImage("screenshots/navygold_${route}_light.png")
+        }
+    }
+
+    @Test
+    fun navygold_other_tabs_dark() {
+        setApp(dark = true, Skin.NavyGold)
+        listOf("accounts", "balance").forEach { route ->
+            compose.onNodeWithTag("nav_$route").performClick()
+            compose.waitForIdle()
+            compose.onRoot().captureRoboImage("screenshots/navygold_${route}_dark.png")
         }
     }
 }

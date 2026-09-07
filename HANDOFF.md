@@ -77,7 +77,8 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 
 ## Pendientes / preguntas abiertas
 
-- [ ] **Feedback de Vic sobre la Fase 1 con identidad Esforia** (S-007) antes de la Fase 2.
+- [ ] **Vic elige piel** (Esforia o NavyGold) para seguir a la Fase 2. La otra se conserva
+  (D-022) salvo que Vic pida borrarla.
 - [ ] Decidir si esta app adopta también la marca Esforia (icono teja morada con "E", splash
   morado, nombre) o solo la identidad visual. Por ahora el icono solo toma el morado `#6C5CE7`.
 - [ ] Decidir si se portan los temas de Esforia (rosa, sakura, lluvia, bosque, nieve, custom) y
@@ -220,6 +221,47 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 - **Actualiza**: D-012 (blobs planos → gotas 3D), D-015 (paleta índigo/violeta/teal/rosa →
   periwinkle/champán/lila), D-018 (iconos Rounded → Outlined). Las tres siguen vigentes en lo
   demás.
+
+### D-022 · 2026-09-07 · Arquitectura de pieles: dos identidades visuales completas conmutables
+- **Decisión**: `enum Skin { Esforia, NavyGold }` + `LocalSkin` + `DefaultSkin`. Una piel es
+  paleta + tipografía + variantes de componentes + pantallas propias donde la disposición
+  difiere. `Palette` gana campos "extra" con valores por defecto que reproducen Esforia
+  (`headerBand`, `heroGradient`, `heroValueGradient`, `cardGradients`, `navBackground`, `gold`,
+  `positive`/`negative`, `chart`); NavyGold los sobrescribe. `PersonalAppTheme(skin)` provee
+  paleta y tipografía; `AppNavHost` y `FinanceApp` eligen pantallas, fondo y barra por piel.
+- **Por qué**: Vic: "todo esto no lo borres, guárdatelo y ahora te paso otro diseño
+  completamente distinto para ver cómo queda". Hay que poder comparar sin destruir.
+- **Para qué**: elegir con las dos en la mano y descartar después con una línea de código.
+- **Descartado**: rama git por piel (no se pueden ver ambas en el mismo APK ni compartir
+  arreglos); solo cambiar la paleta (los layouts difieren: banda, hero, tarjetas de cuenta,
+  barra fija).
+- **Coste conocido**: dos juegos de pantallas en el árbol hasta que Vic elija. Las fuentes de
+  ambas pieles van en el APK (Sora+Manrope+Plex Mono ≈ 550 KB, Inter ≈ 880 KB).
+
+### D-023 · 2026-09-07 · Piel NavyGold: traducción del diseño navy/teal/dorado
+- **Fuente**: `docs/design/navy-gold-{claro,oscuro,home-claro}-2026-09-07.png`.
+- **Paleta claro**: fondo marfil `#F3EFE4`, banda petróleo `#235A68→#163C4A`, tinta navy
+  `#1B2F3B`, acento navy `#1E4C5C` (botones), dorado `#C9A85B` (saludo, subrayado, gráficas),
+  hero crema→dorado `#FAF6EC→#EDE0BA→#D9C48C`, tarjetas de cuenta en degradados navy→teal→oro,
+  navy→azul grisáceo, navy→bronce→oro, verde→oro. Positivo `#3F9A6B`, negativo `#D9534F`.
+- **Paleta oscuro**: fondo `#16222B→#0E171E`, banda `#1B3F49→#12242C`, superficie `#1C2A35`,
+  tinta marfil `#F2EFE6`, hero `#223A48→#182B37` con la **cifra en degradado dorado**
+  `#F3E4B6→#D4B36A`, barra `#0F1A21`, activo dorado.
+- **Tipografía**: Inter variable para todo; título 26 bold, saludo 15 medium dorado, cifra
+  hero 34 bold, importe de tarjeta 24 bold, secciones 16 semibold, barra 10.
+- **Estructura**: banda superior recta (inset + 132dp) con título/saludo/avatar con aro; el
+  hero empieza dentro de la banda y la solapa 32dp. Home: tira horizontal de mini-tarjetas,
+  barras "Gastos mensuales", lista de transacciones con icono en círculo tintado y triángulo
+  verde/rojo. Cuentas: tarjetas degradado con sparkline y botón "Añadir cuenta" + "+" redondo.
+  Balance (≈ "Gastos" del diseño): donut con leyenda, dos botones pequeños de contorno, lista.
+  Ajustes y Perfil reutilizan `Group`/`GroupRow` con la paleta de la piel (no estaban en el
+  diseño; se derivan).
+- **Barra**: fija, ancho completo, línea superior, subrayado dorado sobre el icono activo.
+  Sigue encogiéndose con el scroll (etiquetas se ocultan) para respetar el brief.
+- **Datos de muestra**: las pantallas NavyGold muestran cifras ILUSTRATIVAS (45.820,50 €,
+  Chase, BBVA…) para poder juzgar el diseño; las de Esforia muestran ceros. Fase 2 lo sustituye.
+- **Descartado**: barra flotante burbuja en esta piel (el diseño la muestra fija); título
+  centrado en versalitas (el diseño lo lleva a la izquierda en la banda).
 
 ### D-021 · 2026-09-07 · La identidad visual de la app es la de Esforia, calcada del repo
 - **Decisión**: se abandona la guía de imagen (D-019) y se adopta íntegra la identidad de
@@ -472,6 +514,26 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
   de los blobs ajustados en `Glass.kt`. Sin cambios en tarjetas ni barra.
 - **Resultado**: `lintDebug`, `assembleRelease` y 5 tests en verde. 7 capturas enviadas a Vic.
   Commit `0982c65` pusheado a `claude/android-personal-setup-hm95yj`. APK entregado a Vic.
+
+### S-008 · 2026-09-07 · Segunda piel NavyGold, conmutable, sin borrar Esforia
+- **Petición de Vic**: "antes de continuar a la fase 2 quiero descartar otro aspecto visual,
+  todo esto no lo borres guárdatelo y ahora te paso otro diseño completamente distinto para ver
+  cómo queda, tienes tanto el modo claro como el oscuro" + 3 imágenes.
+- **Hecho**: `Skin.kt`, extras en `Palette.kt` con `NavyGoldLightPalette`/`NavyGoldDarkPalette`,
+  `NavyGoldTypography` + `moneyStyle()` en `Type.kt`, `Theme.kt` por piel. Componentes en
+  `ui/components/navygold/` (`BandHeader`, `NavyHero`, `GradientCard`, `AccountCard`,
+  `MiniAccountCard`, `Sparkline`, `NavyButton`, `SmallOutlineButton`, `SectionTitle`,
+  `TransactionRow`, `DonutChart`, `BarChart`, `DockedNavBar`). Pantallas en
+  `ui/screens/navygold/` (`NavyScaffold`, `NavyScreens.kt`). `AppNavHost` y `FinanceApp`
+  ramifican por piel. Inter variable añadida a `res/font`. Tests de captura para ambas pieles
+  (15 PNG). Imágenes del diseño en `docs/design/navy-gold-*.png`.
+- **Problemas**: la banda con esquinas inferiores redondeadas asomaba como "hombros" a los
+  lados del hero → banda recta como en el diseño. Sombra del hero en claro demasiado gris →
+  alfa 0,09.
+- **Resultado**: lint, release (1,8 MB) y 9 tests en verde. Capturas y APK enviados a Vic.
+  Commit pusheado a `claude/android-personal-setup-hm95yj`.
+- **Nota**: la Home NavyGold cabe en pantalla, así que su captura "scrolled" no ejercita el
+  encogido de la barra; el mecanismo es el mismo `NavBarScrollState` y funciona en Esforia.
 
 ### S-007 · 2026-09-07 · Identidad visual de Esforia
 - **Petición de Vic**: tras probar el APK, "de funcionar funciona, pero no me gusta el diseño
