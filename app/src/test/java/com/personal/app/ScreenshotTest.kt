@@ -1,5 +1,6 @@
 package com.personal.app
 
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onRoot
@@ -9,7 +10,12 @@ import androidx.compose.ui.test.swipeUp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
 import com.github.takahirom.roborazzi.captureRoboImage
+import com.personal.app.data.bank.MockBankProvider
+import com.personal.app.data.model.AccountType
+import com.personal.app.data.model.Category
+import com.personal.app.data.store.InMemoryFinanceStore
 import com.personal.app.ui.theme.PersonalAppTheme
+import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -19,6 +25,7 @@ import org.robolectric.annotation.GraphicsMode
 /**
  * Renders the app on the JVM (Robolectric + Roborazzi) and writes PNGs to app/screenshots/.
  * Run with `./gradlew recordRoborazziDebug`. No emulator needed.
+ * Data: an in-memory ledger with the sandbox bank linked at a fixed clock, so every run is identical.
  */
 @RunWith(AndroidJUnit4::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -28,10 +35,26 @@ class ScreenshotTest {
     @get:Rule
     val compose = createComposeRule()
 
-    private fun setApp(dark: Boolean) {
+    private val now = 1_757_260_800_000L // 2025-09-07T16:00:00Z
+
+    private fun seededContainer(): AppContainer {
+        val container = AppContainer(InMemoryFinanceStore(), listOf(MockBankProvider(clock = { now }, latencyMillis = 0)), clock = { now })
+        runBlocking {
+            container.repository.linkBank("mock", "demo")
+            val cash = container.repository.addManualAccount("Efectivo", AccountType.CASH, 120_00)
+            container.repository.addManualTransaction(cash.id, -12_50, Category.FOOD, "Bocadillo", timestamp = now - 3600_000L)
+        }
+        return container
+    }
+
+    private fun emptyContainer() = AppContainer(InMemoryFinanceStore(), listOf(MockBankProvider(clock = { now }, latencyMillis = 0)), clock = { now })
+
+    private fun setApp(dark: Boolean, container: AppContainer = seededContainer()) {
         compose.setContent {
-            PersonalAppTheme(darkTheme = dark) {
-                FinanceApp(animatedBackground = false, blurBackground = false)
+            CompositionLocalProvider(LocalAppContainer provides container) {
+                PersonalAppTheme(darkTheme = dark) {
+                    FinanceApp(animatedBackground = false, blurBackground = false)
+                }
             }
         }
     }
@@ -46,6 +69,12 @@ class ScreenshotTest {
     fun home_light() {
         setApp(dark = false)
         compose.onRoot().captureRoboImage("screenshots/home_light.png")
+    }
+
+    @Test
+    fun home_empty_light() {
+        setApp(dark = false, container = emptyContainer())
+        compose.onRoot().captureRoboImage("screenshots/home_empty_light.png")
     }
 
     @Test
@@ -64,5 +93,29 @@ class ScreenshotTest {
             compose.waitForIdle()
             compose.onRoot().captureRoboImage("screenshots/${route}_light.png")
         }
+    }
+
+    @Test
+    fun forms_light() {
+        setApp(dark = false)
+        compose.onNodeWithTag("home_add").performClick()
+        compose.waitForIdle()
+        compose.onRoot().captureRoboImage("screenshots/add_transaction_light.png")
+    }
+
+    @Test
+    fun link_bank_light() {
+        setApp(dark = false, container = emptyContainer())
+        compose.onNodeWithTag("home_link_bank").performClick()
+        compose.waitForIdle()
+        compose.onRoot().captureRoboImage("screenshots/link_bank_light.png")
+    }
+
+    @Test
+    fun add_account_light() {
+        setApp(dark = false, container = emptyContainer())
+        compose.onNodeWithTag("home_add_account").performClick()
+        compose.waitForIdle()
+        compose.onRoot().captureRoboImage("screenshots/add_account_light.png")
     }
 }

@@ -17,6 +17,7 @@ import com.personal.app.ui.components.NavBarBottomMargin
 import com.personal.app.ui.components.rememberNavBarScrollState
 import com.personal.app.ui.navigation.AppNavHost
 import com.personal.app.ui.navigation.Destination
+import com.personal.app.ui.navigation.Routes
 import com.personal.app.ui.navigation.navigateToTab
 
 /**
@@ -32,7 +33,9 @@ fun FinanceApp(
     val navController = rememberNavController()
     val scrollState = rememberNavBarScrollState()
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val current = Destination.fromRoute(backStackEntry?.destination?.route) ?: Destination.start
+    val route = backStackEntry?.destination?.route
+    val current = Destination.fromRoute(route) ?: Destination.start
+    val onForm = route in Routes.forms
 
     Box(Modifier.fillMaxSize()) {
         AmbientBackground(tone = current.tone, animated = animatedBackground, blur = blurBackground)
@@ -41,7 +44,7 @@ fun FinanceApp(
             AppNavHost(navController)
         }
 
-        BubbleNavBar(
+        if (!onForm) BubbleNavBar(
             destinations = Destination.entries,
             selected = current,
             collapsed = scrollState.collapsed,

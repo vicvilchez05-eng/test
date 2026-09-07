@@ -15,7 +15,6 @@
     <string name="profile_eyebrow">Cuenta</string>
     <string name="profile_personal_use">Uso personal</string>
 
-    <string name="action_add_account">Añadir cuenta</string>
 
     <string name="this_month">este mes</string>
     <string name="hero_all_accounts">En todas las cuentas</string>
@@ -23,8 +22,6 @@
     <string name="stat_income">Ingresos</string>
     <string name="stat_spending">Gasto</string>
     <string name="stat_banks">Bancos</string>
-    <string name="stat_cards">Tarjetas</string>
-    <string name="stat_cash">Efectivo</string>
     <string name="stat_weekly_spending">Gasto semanal</string>
     <string name="stat_monthly_income">Ingreso mensual</string>
 
@@ -42,9 +39,6 @@
     <string name="group_privacy">Privacidad</string>
 
     <string name="row_linked_banks">Bancos vinculados</string>
-    <string name="row_cards">Tarjetas</string>
-    <string name="row_cash">Efectivo</string>
-    <string name="row_link_bank">Vincular un banco</string>
     <string name="row_manual_entries">Entradas manuales</string>
     <string name="row_currency">Moneda</string>
     <string name="row_notifications">Notificaciones</string>
@@ -74,7 +68,63 @@
     <string name="cat_food">Comida</string>
     <string name="cat_leisure">Ocio</string>
     <string name="cat_transport">Transporte</string>
-    <string name="tx_rent">Alquiler</string>
-    <string name="tx_fuel">Gasolina</string>
-    <string name="tx_salary">Sueldo</string>
+    <string name="sync">Sincronizar</string>
+    <string name="syncing">Sincronizando…</string>
+    <string name="synced_at">Sincronizada %1$s</string>
+    <string name="linked">Vinculada</string>
+    <string name="manual">Manual</string>
+    <string name="stat_accounts">Cuentas</string>
+    <string name="no_history_yet">Aún sin histórico</string>
+    <string name="empty_home_title">Vamos a meter tu dinero</string>
+    <string name="empty_home_body">Vincula un banco del sandbox para importar cuentas y movimientos, o añade una cuenta a mano.</string>
+    <string name="no_transactions_yet">Todavía no hay movimientos.</string>
+    <string name="no_linked_banks">Ningún banco vinculado todavía.</string>
+    <string name="no_manual_accounts">Ninguna cuenta manual todavía.</string>
+    <string name="no_accounts_yet">Primero necesitas una cuenta.</string>
+    <string name="link_bank_title">Vincular un banco</string>
+    <string name="link_another_bank">Vincular otro banco</string>
+    <string name="link_bank_choose">Elige tu banco</string>
+    <string name="link_bank_sandbox_note">Esto es un sandbox local: se comporta como una conexión Open Banking real (consentimiento, cuentas, saldos, movimientos) pero nada sale de tu móvil. Un proveedor real se enchufa en el mismo sitio.</string>
+    <string name="link_step_consent">Iniciando sesión y dando consentimiento…</string>
+    <string name="link_bank_done_title">%1$s vinculado</string>
+    <string name="add_transaction_title">Añadir movimiento</string>
+    <string name="add_account_title">Añadir cuenta</string>
+    <string name="add_account_manually">Añadir cuenta a mano</string>
+    <string name="expense">Gasto</string>
+    <string name="income">Ingreso</string>
+    <string name="field_category">Categoría</string>
+    <string name="field_account">Cuenta</string>
+    <string name="field_description">Descripción</string>
+    <string name="field_description_hint">Dónde o qué</string>
+    <string name="field_date">Fecha</string>
+    <string name="field_note">Nota</string>
+    <string name="field_note_hint">Opcional</string>
+    <string name="field_name">Nombre</string>
+    <string name="field_name_hint">Efectivo, Ahorro…</string>
+    <string name="field_type">Tipo</string>
+    <string name="field_opening_balance">Saldo inicial</string>
+    <string name="opening_balance_hint">Negativo si es lo que debes en una tarjeta de crédito.</string>
+    <string name="save">Guardar</string>
+    <string name="done">Hecho</string>
+    <string name="retry">Reintentar</string>
+    <string name="ok">Aceptar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="cat_shopping">Compras</string>
+    <string name="cat_health">Salud</string>
+    <string name="cat_bills">Facturas</string>
+    <string name="cat_subscriptions">Suscripciones</string>
+    <string name="cat_other">Otros</string>
+    <string name="cat_salary">Nómina</string>
+    <string name="cat_transfer">Transferencia</string>
+    <string name="cat_other_income">Otros ingresos</string>
+    <string name="acc_checking">Corriente</string>
+    <string name="acc_savings">Ahorro</string>
+    <string name="acc_credit">Tarjeta de crédito</string>
+    <string name="acc_cash">Efectivo</string>
+    <string name="acc_investment">Inversión</string>
+    <plurals name="accounts_imported">
+        <item quantity="one">%1$d cuenta importada con su histórico.</item>
+        <item quantity="many">%1$d cuentas importadas con su histórico.</item>
+        <item quantity="other">%1$d cuentas importadas con su histórico.</item>
+    </plurals>
 </resources>

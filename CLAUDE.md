@@ -27,6 +27,14 @@ Android app (Kotlin, Jetpack Compose, Material 3). Single module `:app`, package
 - Home's structure (greeting + avatar, centred hero with trend, account tile strip, monthly bars, recent transactions) comes from the NavyGold study (`docs/design/navy-gold-home-claro-2026-09-07.png`, HANDOFF D-024); its look is Esforia's. Charts live in `ui/components/Charts.kt` (`BarChart`, `DonutChart`, `Sparkline`) and take colours from `Palette.chart`.
 - The earlier image guide (`docs/design/guia-visual-vic-2026-09-07.png`) is superseded; keep it only as history. The NavyGold skin was removed in D-024 (recoverable from commit `0b3c5cb`).
 
+## Data layer (HANDOFF D-025, D-026)
+- No Room/KSP (none exists for Kotlin 2.4.x) and no DI framework. Persistence is `FinanceStore` → `JsonFileFinanceStore` (`files/finance.json`, atomic writes); tests use `InMemoryFinanceStore`. `AppContainer` (built in `PersonalApplication`) wires store, providers and `FinanceRepository`; composables get it via `LocalAppContainer` and `appViewModel { }`.
+- `FinanceRepository` is the only writer. Money is `Long` minor units + ISO code (`Money.format`/`parseToMinor`); timestamps are epoch millis; "now" always comes from `repository.clock` (injectable) — never `System.currentTimeMillis()`/`YearMonth.now()` in ViewModels.
+- Totals and breakdowns are computed only in `domain/FinanceCalculator`.
+- Banks go through `BankProvider`. `MockBankProvider` is a deterministic local sandbox (seeded per institution and day); `OpenBankingProviderTemplate` documents how a real aggregator plugs in. Record ids for linked data are `"<providerId>:<externalId>"` so re-sync upserts.
+- Forms use `ui/components/Forms.kt`; category/account icons and labels come from `CategoryUi.kt`. Form routes live in `Routes` and hide the bottom bar.
+- Screenshot tests seed an in-memory container with the sandbox bank at a fixed clock.
+
 ## Conventions
 - Dependency versions live only in `gradle/libs.versions.toml`.
 - Kotlin 2.4: use `kotlin { compilerOptions { ... } }`, not `kotlinOptions`.

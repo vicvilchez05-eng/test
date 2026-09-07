@@ -50,7 +50,10 @@ terminadas (ver "Compactar" abajo y D-009).
   reales generadas en JVM con Roborazzi (`./gradlew recordRoborazziDebug` → `app/screenshots/`).
 - **Nombre y paquete**: `PersonalApp` / `com.personal.app`, **provisionales**.
 - **Entorno**: hook de arranque que instala el SDK de Android en cada sesión web de Claude Code.
-- **Siguiente paso**: Vic revisa la Fase 1 y da el visto bueno (o cambios) antes de la Fase 2.
+- **Fase 2 terminada, pendiente de feedback de Vic** (S-010): modelos, almacén JSON, banco
+  sandbox local, plantilla para un proveedor real, repositorio, cálculos, y las pantallas de
+  vincular banco, añadir cuenta y añadir movimiento. Home y Cuentas ya leen datos reales.
+- **Siguiente paso**: Vic prueba la Fase 2 (APK) y da el visto bueno antes de la Fase 3.
 
 ## Plan por fases (especificación de Vic, 2026-09-07)
 
@@ -60,9 +63,9 @@ translucidez, bordes sutiles, sombras suaves). Barra inferior flotante tipo burb
 al hacer scroll hacia abajo y recupera su tamaño al subir. Pantallas: Home, Accounts, Total
 Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fase y fase**.
 
-- **Fase 1 · Setup y arquitectura de UI** ✅ (S-004): framework, fondo animado, estilo glass,
-  barra burbuja con lógica de scroll, 5 pantallas vacías con navegación.
-- **Fase 2 · Datos e integración bancaria**: modelos de Accounts, Transactions y Balances.
+- **Fase 1 · Setup y arquitectura de UI** ✅ (S-004…S-009): framework, fondo animado, identidad
+  Esforia, barra burbuja con lógica de scroll, 5 pantallas con navegación.
+- **Fase 2 · Datos e integración bancaria** ✅ (S-010, sandbox local, sin Plaid/Tink): modelos de Accounts, Transactions y Balances.
   Sincronización primaria con Open Banking en modo mock/sandbox (Plaid o Tink) para tarjetas,
   saldos en tiempo real y transacciones. Sincronización secundaria manual: formulario glass para
   ingresos/gastos si el usuario no quiere vincular banco. Entregable: lógica de datos, plantillas
@@ -83,7 +86,12 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 - [ ] Decidir si se portan los temas de Esforia (rosa, sakura, lluvia, bosque, nieve, custom) y
   sus decoraciones. Hoy solo existe el tema por defecto "ritmo" en claro y oscuro.
 - [ ] Decidir nombre definitivo y paquete (`applicationId`), renombrar `com.personal.app`.
-- [ ] Fase 2: elegir proveedor de Open Banking sandbox (Plaid vs Tink) y si Vic tiene cuenta.
+- [x] Fase 2: proveedor Open Banking → Vic no conoce Plaid/Tink y no quiere darse de alta.
+  Sandbox local (`MockBankProvider`) + plantilla documentada (`OpenBankingProviderTemplate`).
+- [ ] **Feedback de Vic sobre la Fase 2** antes de la Fase 3.
+- [ ] Fase 3: decidir si el nombre "Vic" del saludo y el avatar salen de un perfil editable
+  (Profile) o se quedan fijos.
+- [ ] Vigilar KSP para Kotlin 2.4.x: si aparece, valorar Room (D-025 lo deja preparado).
 - [ ] Probar en un móvil real: rendimiento del fondo (blur + 4 gradientes por frame) y tacto del
   spring de la barra. Solo se ha verificado en capturas estáticas.
 - [ ] Decidir si la app vive en este repo (`test`) o en un repo propio.
@@ -220,6 +228,46 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 - **Actualiza**: D-012 (blobs planos → gotas 3D), D-015 (paleta índigo/violeta/teal/rosa →
   periwinkle/champán/lila), D-018 (iconos Rounded → Outlined). Las tres siguen vigentes en lo
   demás.
+
+### D-025 · 2026-09-07 · Persistencia en un archivo JSON (kotlinx.serialization), sin Room ni DI
+- **Decisión**: `FinanceStore` (interfaz) con `JsonFileFinanceStore` (un archivo
+  `files/finance.json`, escritura atómica temp+rename, mutex, archivo corrupto se aparta como
+  `.corrupt`) e `InMemoryFinanceStore` (tests/capturas). Todo el dataset vive en memoria como
+  `StateFlow<FinanceData>`; cada escritura es una transformación pura. Sin framework de DI: un
+  `AppContainer` a mano expuesto por `LocalAppContainer`; los ViewModels lo reciben por
+  `appViewModel { }`.
+- **Por qué**: Room necesita KSP y **no existe KSP para Kotlin 2.4.10** en los repositorios
+  (último: 2.2.21-2.0.5). Degradar Kotlin o usar kapt era peor. Además Esforia es offline-first
+  con localStorage: el modelo "todo en memoria + un archivo" es el mismo. Un libro personal
+  de años cabe en pocos MB.
+- **Para qué**: cero riesgo de toolchain, exportación (Fase 4) trivial (ya es un JSON) y
+  migraciones por campo `version`.
+- **Descartado**: Room (KSP), SQLDelight (plugin no verificado con Kotlin 2.4), SQLite a mano
+  (más código para lo mismo hoy). Hilt (mismo problema de KSP, y sobra para una docena de objetos).
+- **Reserva**: si aparece KSP para 2.4.x y el dataset crece, `FinanceStore` se reimplementa
+  con Room sin tocar repositorio ni UI.
+
+### D-026 · 2026-09-07 · Open Banking: sandbox local determinista + plantilla, sin proveedor real
+- **Decisión**: interfaz `BankProvider` (instituciones, link/consentimiento, cuentas,
+  movimientos desde una fecha). `MockBankProvider` genera 3 bancos con cuentas y 90 días de
+  historial **deterministas** (semilla por institución y día), con alquiler el día 1 y nómina
+  el 28; la sincronización repetida es idempotente porque los ids son
+  `"<proveedor>:<idExterno>"`. `OpenBankingProviderTemplate` documenta paso a paso cómo se
+  enchufaría Plaid/Tink/GoCardless (link token, intercambio en backend, cuentas, sync
+  incremental con cursor, consentimientos PSD2 de 90 días) y lanza `TODO()`.
+- **Por qué**: Vic: "no tengo ni idea de qué es Plaid o Tink así que no". Un proveedor real
+  exige alta, contrato, credenciales y un backend para no meter el secreto en el APK.
+- **Para qué**: que toda la app funcione de extremo a extremo hoy y que conectar un banco real
+  sea implementar una clase, no rehacer la app.
+- **Descartado**: Plaid/Tink sandbox real (credenciales que Vic no tiene ni quiere), datos
+  aleatorios no deterministas (rompen capturas y tests).
+- **Sincronización**: `FinanceRepository.sync()` refresca saldos y trae movimientos desde
+  `lastSyncAt − 1 día` (solapamiento por si un movimiento se contabiliza tarde). Estado en
+  `syncState` (Idle/Syncing/Error), nunca lanza.
+- **Entrada manual**: `addManualTransaction` mueve el saldo solo en cuentas MANUAL; en cuentas
+  vinculadas el saldo lo manda el banco.
+- **Dinero**: `Long` en céntimos + código ISO; `Money.format/parseToMinor` (acepta "1.234,56",
+  "1,234.56", "1234.56").
 
 ### D-024 · 2026-09-07 · Esforia en todo; la Home toma la estructura de NavyGold; NavyGold se borra
 - **Decisión**: una sola identidad (Esforia, D-021). `HomeScreen` se reescribe con la estructura
@@ -538,6 +586,38 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
   de los blobs ajustados en `Glass.kt`. Sin cambios en tarjetas ni barra.
 - **Resultado**: `lintDebug`, `assembleRelease` y 5 tests en verde. 7 capturas enviadas a Vic.
   Commit `0982c65` pusheado a `claude/android-personal-setup-hm95yj`. APK entregado a Vic.
+
+### S-010 · 2026-09-07 · Fase 2: datos, banco sandbox, entrada manual
+- **Petición de Vic**: arrancar la Fase 2 sin Plaid/Tink ("no tengo ni idea de qué es Plaid o
+  Tink así que no").
+- **Hecho**:
+  - `data/model` (`Account`, `Transaction`, `Category`, `BankConnection`, `FinanceData`, `Money`),
+    `data/store` (D-025), `data/bank` (`BankProvider`, `MockBankProvider`,
+    `OpenBankingProviderTemplate`), `data/repository/FinanceRepository`, `domain/FinanceCalculator`
+    (totales, mes, gasto por categoría, variación mensual).
+  - `AppContainer` + `PersonalApplication` (manifest) + `LocalAppContainer`; ViewModels
+    (`HomeViewModel`, `AccountsViewModel`, `AddTransactionViewModel`, `AddAccountViewModel`,
+    `LinkBankViewModel`).
+  - UI: `Forms.kt` (`EsforiaTextField`, `AmountField`, `OptionPill`, `SegmentedToggle`,
+    `PrimaryButton`, `FormHeader`, `FieldLabel`), `CategoryUi.kt` (icono y etiqueta por
+    categoría y tipo de cuenta), pantallas `AddTransactionScreen`, `AddAccountScreen`,
+    `LinkBankScreen`; rutas `Routes.*` con transición deslizante y **barra oculta** en formularios.
+    Home y Cuentas con datos reales y estados vacíos; "+" en Home abre el alta de movimiento;
+    Cuentas tiene sincronizar y añadir.
+  - Dependencias: kotlinx-serialization (plugin + json 1.10.0), coroutines 1.10.2,
+    lifecycle-viewmodel-compose y runtime-compose 2.9.2.
+  - Tests: `MockBankProviderTest` (determinismo, filtro since, saldos), `FinanceRepositoryTest`
+    (alta manual, borrado, vinculación + resync idempotente, desvincular),
+    `FinanceCalculatorTest` (totales, cuotas, dinero). Capturas con contenedor sembrado y reloj
+    fijo; nuevas: Home vacía, alta de movimiento, alta de cuenta, vincular banco.
+- **Problemas**: sin KSP para Kotlin 2.4 (→ D-025); `NumberFormat` usa espacio duro (test
+  normaliza); la Home usaba `YearMonth.now()` real en vez del reloj del repositorio (→ los
+  ViewModels usan `repo.clock`); plural `accounts_imported` necesita `many` en español.
+- **Resultado**: 20 tests y lint en verde; release 1,9 MB. Capturas y APK enviados a Vic.
+  Commit pusheado a `claude/android-personal-setup-hm95yj`.
+- **Nota de alcance**: Home y Cuentas ya muestran datos reales (adelanto parcial de la Fase 3)
+  porque sin ello la Fase 2 no se podía verificar en pantalla. Balance, Ajustes y Perfil
+  siguen como esqueleto.
 
 ### S-009 · 2026-09-07 · Decisión final de Fase 1: Esforia + estructura de Home de NavyGold
 - **Petición de Vic**: "usaremos el estilo visual de esforia, pero heredamos la estructura del

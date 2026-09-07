@@ -17,7 +17,6 @@
     <string name="profile_eyebrow">Account</string>
     <string name="profile_personal_use">Personal use</string>
 
-    <string name="action_add_account">Add account</string>
 
     <string name="this_month">this month</string>
     <string name="hero_all_accounts">Across all accounts</string>
@@ -25,8 +24,6 @@
     <string name="stat_income">Income</string>
     <string name="stat_spending">Spending</string>
     <string name="stat_banks">Banks</string>
-    <string name="stat_cards">Cards</string>
-    <string name="stat_cash">Cash</string>
     <string name="stat_weekly_spending">Weekly spending</string>
     <string name="stat_monthly_income">Monthly income</string>
 
@@ -44,9 +41,6 @@
     <string name="group_privacy">Privacy</string>
 
     <string name="row_linked_banks">Linked banks</string>
-    <string name="row_cards">Cards</string>
-    <string name="row_cash">Cash</string>
-    <string name="row_link_bank">Link a bank</string>
     <string name="row_manual_entries">Manual entries</string>
     <string name="row_currency">Currency</string>
     <string name="row_notifications">Notifications</string>
@@ -76,7 +70,62 @@
     <string name="cat_food">Food</string>
     <string name="cat_leisure">Leisure</string>
     <string name="cat_transport">Transport</string>
-    <string name="tx_rent">Rent</string>
-    <string name="tx_fuel">Fuel</string>
-    <string name="tx_salary">Salary</string>
+    <string name="sync">Sync</string>
+    <string name="syncing">Syncing…</string>
+    <string name="synced_at">Synced %1$s</string>
+    <string name="linked">Linked</string>
+    <string name="manual">Manual</string>
+    <string name="stat_accounts">Accounts</string>
+    <string name="no_history_yet">No history yet</string>
+    <string name="empty_home_title">Let\'s get your money in</string>
+    <string name="empty_home_body">Link a bank from the sandbox to import accounts and movements, or add an account by hand.</string>
+    <string name="no_transactions_yet">No transactions yet.</string>
+    <string name="no_linked_banks">No bank linked yet.</string>
+    <string name="no_manual_accounts">No manual account yet.</string>
+    <string name="no_accounts_yet">You need an account first.</string>
+    <string name="link_bank_title">Link a bank</string>
+    <string name="link_another_bank">Link another bank</string>
+    <string name="link_bank_choose">Choose your bank</string>
+    <string name="link_bank_sandbox_note">This is a local sandbox: it behaves like a real Open Banking connection (consent, accounts, balances, transactions) but nothing leaves your phone. A real provider plugs into the same place.</string>
+    <string name="link_step_consent">Signing in and granting consent…</string>
+    <string name="link_bank_done_title">%1$s linked</string>
+    <string name="add_transaction_title">Add movement</string>
+    <string name="add_account_title">Add account</string>
+    <string name="add_account_manually">Add account manually</string>
+    <string name="expense">Expense</string>
+    <string name="income">Income</string>
+    <string name="field_category">Category</string>
+    <string name="field_account">Account</string>
+    <string name="field_description">Description</string>
+    <string name="field_description_hint">Where or what</string>
+    <string name="field_date">Date</string>
+    <string name="field_note">Note</string>
+    <string name="field_note_hint">Optional</string>
+    <string name="field_name">Name</string>
+    <string name="field_name_hint">Cash, Savings…</string>
+    <string name="field_type">Type</string>
+    <string name="field_opening_balance">Opening balance</string>
+    <string name="opening_balance_hint">Negative for a credit card balance you owe.</string>
+    <string name="save">Save</string>
+    <string name="done">Done</string>
+    <string name="retry">Retry</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="cat_shopping">Shopping</string>
+    <string name="cat_health">Health</string>
+    <string name="cat_bills">Bills</string>
+    <string name="cat_subscriptions">Subscriptions</string>
+    <string name="cat_other">Other</string>
+    <string name="cat_salary">Salary</string>
+    <string name="cat_transfer">Transfer</string>
+    <string name="cat_other_income">Other income</string>
+    <string name="acc_checking">Checking</string>
+    <string name="acc_savings">Savings</string>
+    <string name="acc_credit">Credit card</string>
+    <string name="acc_cash">Cash</string>
+    <string name="acc_investment">Investment</string>
+    <plurals name="accounts_imported">
+        <item quantity="one">%1$d account imported with its history.</item>
+        <item quantity="other">%1$d accounts imported with their history.</item>
+    </plurals>
 </resources>

@@ -34,6 +34,11 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk   # instalar en un móv
 
 ```
 app/src/main/java/com/personal/app/
+  AppContainer.kt                     grafo de dependencias a mano + PersonalApplication
+  data/model, data/store, data/bank   modelos, almacen JSON, proveedor bancario (sandbox + plantilla)
+  data/repository                     FinanceRepository (unico escritor)
+  domain/FinanceCalculator.kt         totales, mes, gasto por categoria
+  ui/viewmodel/                       ViewModels finos
   FinanceApp.kt                       raiz de la UI: fondo -> pantalla -> barra
   ui/theme/                           Palette (tokens Esforia), Type (Sora/Manrope/Plex Mono), Theme
   ui/components/                      AmbientBackground, Surfaces (cards, hero, groups...), PageHeader, GlassSurface, BubbleNavBar, NavBarScrollState
