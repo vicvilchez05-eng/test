@@ -7,16 +7,80 @@
 
     <string name="home_title">Inicio</string>
     <string name="accounts_title">Cuentas</string>
-    <string name="accounts_subtitle">Cuentas vinculadas</string>
+    <string name="accounts_eyebrow">Cuentas vinculadas</string>
     <string name="balance_title">Balance total</string>
-    <string name="balance_subtitle">Balance total detallado</string>
+    <string name="balance_eyebrow">Balance total detallado</string>
     <string name="settings_title">Ajustes</string>
-    <string name="settings_subtitle">Moneda</string>
+    <string name="settings_eyebrow">Preferencias</string>
     <string name="profile_title">Perfil</string>
-    <string name="profile_subtitle">Cuenta</string>
+    <string name="profile_eyebrow">Cuenta</string>
+    <string name="profile_personal_use">Uso personal</string>
 
+    <string name="action_sync">Sincronizar</string>
+    <string name="action_notifications">Notificaciones</string>
+    <string name="action_add_account">Añadir cuenta</string>
+
+    <string name="this_month">este mes</string>
+    <string name="hero_net_available">Disponible neto</string>
+    <string name="hero_all_accounts">En todas las cuentas</string>
+    <string name="hero_net_worth">Patrimonio neto</string>
+    <string name="stat_income">Ingresos</string>
+    <string name="stat_expenses">Gastos</string>
+    <string name="stat_savings">Ahorro</string>
+    <string name="stat_spending">Gasto</string>
+    <string name="stat_banks">Bancos</string>
+    <string name="stat_cards">Tarjetas</string>
+    <string name="stat_cash">Efectivo</string>
+    <string name="stat_weekly_spending">Gasto semanal</string>
+    <string name="stat_monthly_income">Ingreso mensual</string>
+
+    <string name="latest_transactions">Últimos movimientos</string>
+    <string name="open_accounts">Abrir cuentas</string>
+
+    <string name="section_this_week">Esta semana</string>
+    <string name="section_more">Más</string>
+    <string name="section_linked">Vinculadas</string>
+    <string name="section_manual">Manual</string>
+    <string name="section_weekly_summary">Resumen semanal</string>
+    <string name="section_monthly_summary">Resumen mensual</string>
+    <string name="section_export">Exportar</string>
+
+    <string name="group_general">General</string>
+    <string name="group_data">Datos</string>
+    <string name="group_help">Ayuda</string>
+    <string name="group_account">Cuenta</string>
+    <string name="group_privacy">Privacidad</string>
+
+    <string name="row_budgets">Presupuestos</string>
+    <string name="row_upcoming">Próximos</string>
+    <string name="row_insights">Análisis</string>
+    <string name="row_recurring">Pagos recurrentes</string>
+    <string name="row_savings_goals">Metas de ahorro</string>
+    <string name="row_categories">Categorías</string>
+    <string name="row_quick_add">Añadir rápido</string>
+    <string name="row_linked_banks">Bancos vinculados</string>
+    <string name="row_cards">Tarjetas</string>
+    <string name="row_cash">Efectivo</string>
+    <string name="row_link_bank">Vincular un banco</string>
+    <string name="row_manual_entries">Entradas manuales</string>
+    <string name="row_currency">Moneda</string>
+    <string name="row_notifications">Notificaciones</string>
+    <string name="row_dark_mode">Modo oscuro</string>
+    <string name="row_bank_apis">Gestionar APIs bancarias</string>
+    <string name="row_reports">Informes</string>
+    <string name="row_backup">Datos y copia de seguridad</string>
+    <string name="row_support">Soporte y ayuda</string>
+    <string name="row_about">Acerca de</string>
+    <string name="row_profile_info">Datos del perfil</string>
+    <string name="row_security">Seguridad</string>
+    <string name="row_privacy">Privacidad</string>
+
+    <string name="export_pdf">Exportar informe (PDF)</string>
+    <string name="export_csv">Exportar datos (CSV)</string>
+
+    <string name="phase_2">Fase 2</string>
+    <string name="phase_3">Fase 3</string>
+    <string name="phase_4">Fase 4</string>
     <string name="placeholder_phase">Llega en la %1$s</string>
-    <string name="placeholder_trend">+ Tendencia</string>
-    <string name="quick_add">Añadir</string>
-    <string name="quick_actions">Acciones</string>
+    <string name="placeholder_chart">Gráfica · %1$s</string>
 </resources>

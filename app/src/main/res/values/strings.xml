@@ -9,16 +9,80 @@
 
     <string name="home_title">Home</string>
     <string name="accounts_title">Accounts</string>
-    <string name="accounts_subtitle">Linked accounts</string>
+    <string name="accounts_eyebrow">Linked accounts</string>
     <string name="balance_title">Total Balance</string>
-    <string name="balance_subtitle">Detailed total balance</string>
+    <string name="balance_eyebrow">Detailed total balance</string>
     <string name="settings_title">Settings</string>
-    <string name="settings_subtitle">Currency</string>
+    <string name="settings_eyebrow">Preferences</string>
     <string name="profile_title">Profile</string>
-    <string name="profile_subtitle">Account</string>
+    <string name="profile_eyebrow">Account</string>
+    <string name="profile_personal_use">Personal use</string>
 
+    <string name="action_sync">Sync</string>
+    <string name="action_notifications">Notifications</string>
+    <string name="action_add_account">Add account</string>
+
+    <string name="this_month">this month</string>
+    <string name="hero_net_available">Net available</string>
+    <string name="hero_all_accounts">Across all accounts</string>
+    <string name="hero_net_worth">Net worth</string>
+    <string name="stat_income">Income</string>
+    <string name="stat_expenses">Expenses</string>
+    <string name="stat_savings">Savings</string>
+    <string name="stat_spending">Spending</string>
+    <string name="stat_banks">Banks</string>
+    <string name="stat_cards">Cards</string>
+    <string name="stat_cash">Cash</string>
+    <string name="stat_weekly_spending">Weekly spending</string>
+    <string name="stat_monthly_income">Monthly income</string>
+
+    <string name="latest_transactions">Latest transactions</string>
+    <string name="open_accounts">Open accounts</string>
+
+    <string name="section_this_week">This week</string>
+    <string name="section_more">More</string>
+    <string name="section_linked">Linked</string>
+    <string name="section_manual">Manual</string>
+    <string name="section_weekly_summary">Weekly summary</string>
+    <string name="section_monthly_summary">Monthly summary</string>
+    <string name="section_export">Export</string>
+
+    <string name="group_general">General</string>
+    <string name="group_data">Data</string>
+    <string name="group_help">Help</string>
+    <string name="group_account">Account</string>
+    <string name="group_privacy">Privacy</string>
+
+    <string name="row_budgets">Budgets</string>
+    <string name="row_upcoming">Upcoming</string>
+    <string name="row_insights">Insights</string>
+    <string name="row_recurring">Recurring payments</string>
+    <string name="row_savings_goals">Savings goals</string>
+    <string name="row_categories">Categories</string>
+    <string name="row_quick_add">Quick add</string>
+    <string name="row_linked_banks">Linked banks</string>
+    <string name="row_cards">Cards</string>
+    <string name="row_cash">Cash</string>
+    <string name="row_link_bank">Link a bank</string>
+    <string name="row_manual_entries">Manual entries</string>
+    <string name="row_currency">Currency</string>
+    <string name="row_notifications">Notifications</string>
+    <string name="row_dark_mode">Dark mode</string>
+    <string name="row_bank_apis">Manage bank APIs</string>
+    <string name="row_reports">Reports</string>
+    <string name="row_backup">Data &amp; backup</string>
+    <string name="row_support">Support &amp; help</string>
+    <string name="row_about">About</string>
+    <string name="row_profile_info">Profile info</string>
+    <string name="row_security">Security</string>
+    <string name="row_privacy">Privacy</string>
+
+    <string name="export_pdf">Export report (PDF)</string>
+    <string name="export_csv">Export data (CSV)</string>
+
+    <string name="phase_2">Phase 2</string>
+    <string name="phase_3">Phase 3</string>
+    <string name="phase_4">Phase 4</string>
     <string name="placeholder_phase">Coming in %1$s</string>
-    <string name="placeholder_trend">+ Trend</string>
-    <string name="quick_add">Add</string>
-    <string name="quick_actions">Actions</string>
+    <string name="placeholder_chart">Chart · %1$s</string>
 </resources>

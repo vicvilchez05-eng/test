@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.personal.app.ui.components.BlobBackground
+import com.personal.app.ui.components.AmbientBackground
 import com.personal.app.ui.components.BubbleNavBar
 import com.personal.app.ui.components.NavBarBottomMargin
 import com.personal.app.ui.components.rememberNavBarScrollState
@@ -20,9 +20,9 @@ import com.personal.app.ui.navigation.Destination
 import com.personal.app.ui.navigation.navigateToTab
 
 /**
- * Root of the UI. Layers, bottom to top: blob background, the current screen, the floating bar.
- * The screens draw edge-to-edge under the bar; the nested-scroll connection installed here is
- * what lets any scrolling screen collapse or expand the bar.
+ * Root of the UI. Layers, bottom to top: ambient glow (tone follows the current tab), the
+ * current screen, the floating bar. The nested-scroll connection installed here is what lets any
+ * scrolling screen collapse or expand the bar.
  */
 @Composable
 fun FinanceApp(
@@ -35,13 +35,9 @@ fun FinanceApp(
     val current = Destination.fromRoute(backStackEntry?.destination?.route) ?: Destination.start
 
     Box(Modifier.fillMaxSize()) {
-        BlobBackground(animated = animatedBackground, blur = blurBackground)
+        AmbientBackground(tone = current.tone, animated = animatedBackground, blur = blurBackground)
 
-        Box(
-            Modifier
-                .fillMaxSize()
-                .nestedScroll(scrollState.connection),
-        ) {
+        Box(Modifier.fillMaxSize().nestedScroll(scrollState.connection)) {
             AppNavHost(navController)
         }
 

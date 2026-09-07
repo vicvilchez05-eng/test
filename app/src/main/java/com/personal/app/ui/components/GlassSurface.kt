@@ -2,24 +2,16 @@ package com.personal.app.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Outline
@@ -29,128 +21,61 @@ import androidx.compose.ui.graphics.addOutline
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.personal.app.ui.theme.LocalGlass
+import com.personal.app.ui.theme.LocalPalette
 import kotlin.math.pow
 
-
 /**
- * The base frosted-glass surface from the guide: a near-opaque white fill with a faint vertical
- * gradient, a 1dp border that is pure white on top and a hairline navy at the bottom, a soft
- * sheen in the top-left corner and a very soft drop shadow clipped out of the surface itself.
- *
- * Real backdrop blur is not applied: it needs API 31 RenderEffect and an extra render pass per
- * card, and with an 80 % white fill the blobs behind already read as frosted.
+ * Esforia's `GlassPanel`: `glass` fill, 1px `glassBorder`, `glassShadow`. Used sparingly — in
+ * Esforia only the onboarding and a handful of floating elements; here, the floating tab bar.
+ * No backdrop blur (Esforia pays it on four elements; the blobs behind are already blurred).
  */
 @Composable
 fun GlassSurface(
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(LocalGlass.current.cornerRadius),
-    shadowElevation: Dp = LocalGlass.current.shadowElevation,
-    tint: Color = Color.Unspecified,
-    onClick: (() -> Unit)? = null,
+    shape: Shape = RoundedCornerShape(18.dp),
+    fill: Color = LocalPalette.current.glass,
+    border: Color = LocalPalette.current.glassBorder,
+    shadow: Color = LocalPalette.current.glassShadow,
+    shadowElevation: Dp = 18.dp,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    val glass = LocalGlass.current
-    val interaction = remember { MutableInteractionSource() }
-    val fill = if (tint.isSpecified) {
-        // Tinted glass: a wash of colour over the frosted fill, still translucent.
-        if (glass.isDark) listOf(tint.copy(alpha = 0.30f), tint.copy(alpha = 0.14f))
-        else listOf(tint.copy(alpha = 0.55f), tint.copy(alpha = 0.40f))
-    } else {
-        listOf(glass.fillTop, glass.fillBottom)
-    }
-
     Box(
         modifier = modifier
-            .glassShadow(shape, shadowElevation, glass.shadow)
+            .softShadow(shape, shadowElevation, shadow, offsetY = shadowElevation / 2)
             .clip(shape)
-            .background(Brush.verticalGradient(fill))
-            .drawBehind {
-                // Sheen: light catching the top-left corner.
-                drawRect(
-                    Brush.radialGradient(
-                        colors = listOf(glass.highlight, Color.Transparent),
-                        center = Offset(size.width * 0.12f, 0f),
-                        radius = size.width * 0.45f,
-                    ),
-                )
-                // Thin bright edge along the top.
-                drawLine(
-                    brush = Brush.horizontalGradient(
-                        listOf(Color.Transparent, glass.borderTop, Color.Transparent),
-                    ),
-                    start = Offset(0f, 0.5f),
-                    end = Offset(size.width, 0.5f),
-                    strokeWidth = 1.dp.toPx(),
-                )
-            }
-            .border(
-                width = 1.dp,
-                brush = Brush.linearGradient(
-                    colors = listOf(glass.borderTop, glass.borderBottom),
-                    start = Offset.Zero,
-                    end = Offset.Infinite,
-                ),
-                shape = shape,
-            )
-            .then(
-                if (onClick != null) {
-                    Modifier.clickable(
-                        interactionSource = interaction,
-                        indication = ripple(color = glass.highlight),
-                        onClick = onClick,
-                    )
-                } else {
-                    Modifier
-                },
-            ),
+            .background(fill)
+            .border(1.dp, border, shape),
         content = content,
     )
 }
 
-/** A glass surface laid out as a padded column. The everyday building block for content. */
-@Composable
-fun GlassCard(
-    modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(LocalGlass.current.cornerRadius),
-    contentPadding: Dp = 16.dp,
-    tint: Color = Color.Unspecified,
-    onClick: (() -> Unit)? = null,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    GlassSurface(modifier = modifier, shape = shape, tint = tint, onClick = onClick) {
-        Column(Modifier.padding(contentPadding), content = content)
-    }
-}
-
 /**
- * Soft drop shadow drawn as stacked, progressively larger and fainter rounded rects.
- * The surface's own area is clipped out, so nothing darkens the translucent interior.
- * Works on every API level and in Robolectric (no RenderEffect / BlurMaskFilter needed).
+ * `box-shadow: 0 Y B color` drawn as stacked, progressively larger and fainter rounded rects,
+ * with the surface's own area clipped out so a translucent surface stays clean.
+ * Works on every API level and in Robolectric.
  */
-fun Modifier.glassShadow(shape: Shape, elevation: Dp, color: Color): Modifier =
-    if (elevation <= 0.dp || color.alpha == 0f) this else drawBehind {
+fun Modifier.softShadow(shape: Shape, blur: Dp, color: Color, offsetY: Dp = blur / 2): Modifier =
+    if (blur <= 0.dp || color.alpha == 0f) this else drawBehind {
         val outline = shape.createOutline(size, layoutDirection, this)
         val cornerRadius = when (outline) {
             is Outline.Rounded -> outline.roundRect.topLeftCornerRadius.x
             else -> 0f
         }
         val cutout = Path().apply { addOutline(outline) }
-        val elevationPx = elevation.toPx()
+        val blurPx = blur.toPx()
+        val dy = offsetY.toPx()
         val layers = 10
         clipPath(cutout, ClipOp.Difference) {
             for (i in 1..layers) {
                 val t = i / layers.toFloat()
-                val spread = elevationPx * t
+                val spread = blurPx * t
                 val alpha = color.alpha * (1f - t).pow(1.6f) * 0.55f
                 drawRoundRect(
                     color = color.copy(alpha = alpha),
-                    topLeft = Offset(-spread, -spread + elevationPx * 0.5f),
+                    topLeft = Offset(-spread, -spread + dy),
                     size = Size(size.width + spread * 2, size.height + spread * 2),
                     cornerRadius = CornerRadius(cornerRadius + spread),
                 )
             }
         }
     }
-
-private val Color.isSpecified: Boolean get() = this != Color.Unspecified

@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -40,18 +41,16 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
 import com.personal.app.ui.navigation.Destination
-import com.personal.app.ui.theme.LocalGlass
+import com.personal.app.ui.theme.LocalPalette
 
-val NavBarExpandedHeight = 64.dp
-val NavBarCollapsedHeight = 50.dp
+val NavBarExpandedHeight = 62.dp
+val NavBarCollapsedHeight = 48.dp
 val NavBarBottomMargin = 12.dp
 
 /**
- * Floating bottom bar from the guide: a compact white frosted pill, thin outline icons with tiny
- * labels, and a raised white circle that slides under the selected icon.
- *
- * [collapsed] drives a single spring-animated progress: height (64→50dp), side margins, icon
- * size, circle size and label opacity all move together and can be interrupted mid-way.
+ * Esforia's tab bar (surface, 1px line, 19dp icons, 9.5sp labels, moss active / muted inactive,
+ * thicker stroke on the active icon) — kept floating and scroll-collapsing as the brief asks.
+ * A `mossSoft` pill slides under the active icon in place of Esforia's stroke-width change.
  */
 @Composable
 fun BubbleNavBar(
@@ -61,19 +60,18 @@ fun BubbleNavBar(
     collapsed: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val glass = LocalGlass.current
+    val p = LocalPalette.current
     val progress by animateFloatAsState(
         targetValue = if (collapsed) 1f else 0f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow),
         label = "navBarCollapse",
     )
     val height = lerp(NavBarExpandedHeight, NavBarCollapsedHeight, progress)
-    val sideMargin = lerp(24.dp, 56.dp, progress)
-    val iconSize = lerp(22.dp, 20.dp, progress)
-    val circleSize = lerp(40.dp, 36.dp, progress)
-    val labelHeight = lerp(14.dp, 0.dp, progress)
+    val sideMargin = lerp(18.dp, 52.dp, progress)
+    val iconSize = lerp(19.dp, 18.dp, progress)
+    val pillSize = lerp(34.dp, 32.dp, progress)
+    val labelHeight = lerp(13.dp, 0.dp, progress)
     val labelAlpha = (1f - progress * 1.8f).coerceIn(0f, 1f)
-    val verticalPadding = lerp(6.dp, 7.dp, progress)
 
     GlassSurface(
         modifier = modifier
@@ -82,40 +80,29 @@ fun BubbleNavBar(
             .height(height)
             .testTag("bubble_nav_bar"),
         shape = CircleShape,
-        shadowElevation = 16.dp,
+        fill = if (p.isDark) p.surface.copy(alpha = 0.94f) else p.surface.copy(alpha = 0.94f),
+        border = p.line,
+        shadow = p.glassShadow,
+        shadowElevation = 22.dp,
     ) {
-        BoxWithConstraints(
-            Modifier
-                .fillMaxSize()
-                .padding(horizontal = 6.dp, vertical = verticalPadding),
-        ) {
+        BoxWithConstraints(Modifier.fillMaxSize().padding(horizontal = 6.dp, vertical = 6.dp)) {
             val itemWidth = maxWidth / destinations.size
             val selectedIndex = destinations.indexOf(selected).coerceAtLeast(0)
-            val circleX by animateDpAsState(
-                targetValue = itemWidth * selectedIndex + (itemWidth - circleSize) / 2,
+            val pillX by animateDpAsState(
+                targetValue = itemWidth * selectedIndex + (itemWidth - pillSize) / 2,
                 animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
-                label = "navCircle",
+                label = "navPill",
             )
-            // Raised white circle under the selected icon.
             Box(
                 Modifier
-                    .offset { IntOffset(circleX.roundToPx(), 0) }
-                    .size(circleSize)
-                    .glassShadow(CircleShape, 8.dp, glass.shadow)
+                    .offset { IntOffset(pillX.roundToPx(), 0) }
+                    .size(pillSize)
                     .clip(CircleShape)
-                    .background(glass.navSelectedBackground),
+                    .background(p.mossSoft),
             )
             Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.Top) {
                 destinations.forEach { destination ->
-                    NavItem(
-                        destination = destination,
-                        selected = destination == selected,
-                        iconSize = iconSize,
-                        circleSize = circleSize,
-                        labelHeight = labelHeight,
-                        labelAlpha = labelAlpha,
-                        onClick = { onSelect(destination) },
-                    )
+                    NavItem(destination, destination == selected, iconSize, pillSize, labelHeight, labelAlpha) { onSelect(destination) }
                 }
             }
         }
@@ -127,14 +114,13 @@ private fun RowScope.NavItem(
     destination: Destination,
     selected: Boolean,
     iconSize: Dp,
-    circleSize: Dp,
+    pillSize: Dp,
     labelHeight: Dp,
     labelAlpha: Float,
     onClick: () -> Unit,
 ) {
-    val glass = LocalGlass.current
-    val tint = if (selected) glass.navSelectedForeground else glass.navUnselected
-    val labelColor = if (selected) MaterialTheme.colorScheme.onBackground else glass.navUnselected
+    val p = LocalPalette.current
+    val tint = if (selected) p.moss else p.muted
     val interaction = remember { MutableInteractionSource() }
     val label = stringResource(destination.labelRes)
 
@@ -148,28 +134,16 @@ private fun RowScope.NavItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top,
     ) {
-        Box(Modifier.size(circleSize), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(pillSize), contentAlignment = Alignment.Center) {
             Icon(
-                imageVector = destination.icon,
+                imageVector = if (selected) destination.activeIcon else destination.icon,
                 contentDescription = label,
                 tint = tint,
                 modifier = Modifier.size(iconSize),
             )
         }
-        Box(
-            Modifier
-                .height(labelHeight)
-                .graphicsLayer { alpha = labelAlpha },
-            contentAlignment = Alignment.TopCenter,
-        ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = labelColor,
-                maxLines = 1,
-                overflow = TextOverflow.Clip,
-                softWrap = false,
-            )
+        Box(Modifier.height(labelHeight).graphicsLayer { alpha = labelAlpha }, contentAlignment = Alignment.TopCenter) {
+            Text(label, style = MaterialTheme.typography.labelSmall, color = tint, maxLines = 1, overflow = TextOverflow.Clip, softWrap = false)
         }
     }
 }

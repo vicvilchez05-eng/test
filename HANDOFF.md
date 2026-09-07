@@ -31,15 +31,19 @@ terminadas (ver "Compactar" abajo y D-009).
 - **Repo**: `vicvilchez05-eng/test`, rama de trabajo `claude/android-personal-setup-hm95yj`.
 - **Qué es**: app de **finanzas personales** (ver "Plan por fases"). Kotlin + Jetpack Compose +
   Material 3.
-- **Fase 1 terminada y reestilizada según la guía visual de Vic** (S-005, D-019) con los blobs
-  convertidos en resplandores desenfocados al estilo Esforia (S-006, D-020), pendiente de su
-  feedback: fondo lavanda con resplandores suaves animados, tarjetas blancas esmeriladas,
-  cabeceras en versalitas, tipografía Inter, barra inferior blanca compacta con círculo elevado,
-  y las 5 pantallas vacías (Home, Accounts, Total Balance, Settings, Profile) con navegación.
-- **Referencia de código**: el repo `vicvilchez05-eng/esforia-app` (web/Capacitor) de Vic es la
-  referencia de "cómo se hace" para efectos de fondo y glass. Se añade a la sesión con
-  `add_repo` y se clona en `/home/user/esforia-app`. Archivos clave:
-  `src/components/ui/AmbientBackground.tsx` y `src/styles/app.css` (`.ambient-blob`, `.glass`).
+- **Fase 1 terminada con la identidad visual de Esforia** (S-007, D-021), pendiente del
+  feedback de Vic: paleta y tipografías de Esforia (Sora/Manrope/IBM Plex Mono), fondo
+  ambiental de 3 blobs desenfocados en los márgenes con tono por pantalla, hero en degradado
+  morado con stat pills, tarjetas opacas con línea fina, grupos de filas con teja de icono, y la
+  barra flotante que se encoge con el scroll (exigencia del brief) vestida al estilo Esforia.
+- **La identidad visual es la de Esforia**, documentada en `docs/design/identidad-esforia.md`
+  (tokens exactos, tipografía, superficies, fondo, estructura). Léela antes de tocar la UI.
+- **Referencia de código**: el repo `vicvilchez05-eng/esforia-app` (React/Capacitor) de Vic.
+  Solo lectura: **no se modifica**. Se añade a la sesión con `add_repo` y se clona en
+  `/home/user/esforia-app`. Archivos clave: `src/contexts/palettes.ts`, `src/services/themes.ts`,
+  `src/styles/app.css`, `src/components/ui/*`, `src/pages/{Home,Finance,Settings}.tsx`.
+- La guía de imagen `docs/design/guia-visual-vic-2026-09-07.png` queda como referencia
+  **secundaria** (Vic la descartó en favor de Esforia, ver D-021).
 - **Guía visual de referencia**: `docs/design/guia-visual-vic-2026-09-07.png`. Toda decisión
   de estilo se contrasta con ella. Léela (Read) antes de tocar la UI.
 - **Verificación**: compila (debug y release), tests y lint en verde, y capturas de pantalla
@@ -73,7 +77,11 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 
 ## Pendientes / preguntas abiertas
 
-- [ ] **Feedback de Vic sobre la Fase 1 reestilizada** (S-005 + S-006) antes de empezar la Fase 2.
+- [ ] **Feedback de Vic sobre la Fase 1 con identidad Esforia** (S-007) antes de la Fase 2.
+- [ ] Decidir si esta app adopta también la marca Esforia (icono teja morada con "E", splash
+  morado, nombre) o solo la identidad visual. Por ahora el icono solo toma el morado `#6C5CE7`.
+- [ ] Decidir si se portan los temas de Esforia (rosa, sakura, lluvia, bosque, nieve, custom) y
+  sus decoraciones. Hoy solo existe el tema por defecto "ritmo" en claro y oscuro.
 - [ ] Decidir nombre definitivo y paquete (`applicationId`), renombrar `com.personal.app`.
 - [ ] Fase 2: elegir proveedor de Open Banking sandbox (Plaid vs Tink) y si Vic tiene cuenta.
 - [ ] Probar en un móvil real: rendimiento del fondo (blur + 4 gradientes por frame) y tacto del
@@ -180,7 +188,7 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 - **Descartado**: compactar solo a petición (D-008 original): obliga a Vic a vigilar el tamaño.
   Resumir en vez de borrar: el resumen sigue creciendo y no ataja el problema.
 
-### D-019 · 2026-09-07 · Giro visual: se adopta la guía de Vic (lavanda, gotas 3D, blanco esmerilado) · **"Fondo" revertido por D-020**
+### D-019 · 2026-09-07 · Giro visual: se adopta la guía de Vic (lavanda, gotas 3D, blanco esmerilado) · **REVERTIDA por D-021**
 - **Decisión**: se abandona el look oscuro y saturado de S-004 y se reconstruye la capa visual
   siguiendo `docs/design/guia-visual-vic-2026-09-07.png`:
   - **Fondo**: base lavanda muy clara (`#E2E5F6`) con 5 gotas de cristal en periwinkle, champán
@@ -213,7 +221,57 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
   periwinkle/champán/lila), D-018 (iconos Rounded → Outlined). Las tres siguen vigentes en lo
   demás.
 
-### D-020 · 2026-09-07 · Blobs como resplandores desenfocados (receta de Esforia), no como gotas 3D
+### D-021 · 2026-09-07 · La identidad visual de la app es la de Esforia, calcada del repo
+- **Decisión**: se abandona la guía de imagen (D-019) y se adopta íntegra la identidad de
+  `esforia-app`, extraída del código y documentada en `docs/design/identidad-esforia.md`:
+  - **Paleta** `Palette.kt`: copia clave por clave de `palettes.ts` (tema "ritmo"): bg
+    `#F8F7FD`, surface blanco, line `#E7E3F5`, ink `#211C36`, inkSoft `#665F87`, muted
+    `#9891B4`, moss `#6C5CE7` (+soft `#EBE7FD`, text `#4B3FBF`), ember, blue, danger, track,
+    financeGradient `#8B5CF6→#7C6CF0→#5B7FF5`, status*, glass. Oscuro: bg degradado
+    `#17122A→#0C0A16`, surface `#181229`, moss `#8B7CF6`, etc. `LocalPalette` es el token real;
+    el `ColorScheme` de Material se deriva de él.
+  - **Tipografía** `Type.kt`: Sora (títulos, "voice"), Manrope (cuerpo), IBM Plex Mono
+    (cifras). Sora y Manrope como fuentes variables (`FontVariation.weight`), Plex Mono en dos
+    pesos estáticos. Escala: título 25/500, sección 19/500, hero 32/600, fila 14,5, valor 13,
+    etiqueta de grupo 11,5 MAYÚSCULAS, etiqueta de hero 11/600 tracking 0,8, barra 9,5.
+  - **Fondo** `AmbientBackground.kt`: calco de `.ambient-blob`: tres slots en los márgenes
+    (a 240dp arriba-izq, b 200dp a 30 % derecha, c 220dp abajo al 20 %), blur 46dp (API 31+;
+    debajo, degradado radial con caída desde el 45 %), keyframes drift1/2/3 (26/32/29 s,
+    ida y vuelta, escala y opacidad propias), **tono por pantalla** con los mismos colores y
+    fuerzas que `TONES` (home 0,9 · finance 1 · progress 0,7 · profile 0,6 · settings 0,4),
+    con cross-fade de 600 ms al cambiar de pestaña.
+  - **Superficies** `Surfaces.kt`: `SurfaceCard` (opaca, line, r18, p16), `HeroCard`
+    (degradado 135°, r22, p20×18, sombra moss 24 %), `HeroStat` (blanco 16 % / destacada
+    30 % + borde), `SectionLabel`, `GroupLabel`, `Group`+`GroupRow` (r16, filas ≥50, teja 28
+    r9 mossSoft, separador inset 54), `Chip`, `OutlineButton`, `CircleIconButton` (34),
+    `EsforiaSwitch` (48×28, degradado + sombra). `GlassSurface` se conserva solo para la barra
+    flotante, con los valores `glass` de Esforia. Sin ripple rectangular (`pressable`).
+  - **Cabecera** `PageHeader.kt`: línea de 13sp inkSoft (fecha/eyebrow) + título Sora a la
+    izquierda, botones circulares a la derecha. Se elimina el título centrado en versalitas.
+  - **Barra** `BubbleNavBar.kt`: sigue flotante y encogible (brief), pero vestida como la de
+    Esforia: surface 94 %, borde line, icono 19dp Outlined/Filled, etiqueta 9,5sp, moss activo /
+    muted inactivo, píldora `mossSoft` deslizante bajo el icono activo.
+  - **Pantallas**: `ScreenScaffold` (22+statusBar / 18 / 28), y Home, Accounts, Balance,
+    Settings, Profile compuestas con esas piezas siguiendo `Home.tsx`, `Finance.tsx` y
+    `Settings.tsx`. Placeholders "Phase N" como valor de fila o chip.
+  - Icono de launcher: fondo `#6C5CE7`. Strings EN/ES nuevas.
+- **Por qué**: Vic, tras probar el APK: "de funcionar funciona, pero no me gusta el diseño
+  visual" → "Identidad visual de Esforia, analiza el proyecto más a fondo sin tocar nada de él".
+  Esforia es su otra app; ya tiene un módulo de finanzas con hero, stat pills y grupos, así que
+  esta app debe leerse como de la misma familia.
+- **Para qué**: una fuente de verdad concreta y ya probada en producción, con contraste
+  verificado (Esforia testea los acentos contra WCAG), en vez de interpretar una imagen.
+- **Descartado**: tarjetas translúcidas (Esforia las hace opacas a propósito para que el
+  resplandor nunca reste contraste; el glass queda solo en elementos flotantes); backdrop blur
+  (Esforia lo limita a 4 elementos); Inter (sustituida por las tres fuentes de Esforia, más
+  ligeras además: 550 KB frente a 1,7 MB); barra fija tipo Esforia (el brief exige flotante y
+  encogible; se mantiene la conducta y se adopta el estilo).
+- **Revierte**: D-019 (guía de imagen) queda **REVERTIDA** salvo la decisión de fondo de usar
+  una referencia concreta; D-020 se **reespecifica** con la geometría exacta de Esforia (3
+  slots, tonos por pantalla). D-017 (EN + ES) y D-018 (icons extended) siguen vigentes.
+- **Pendiente de Vic**: marca (icono/splash/nombre) y temas adicionales (ver Pendientes).
+
+### D-020 · 2026-09-07 · Blobs como resplandores desenfocados (receta de Esforia), no como gotas 3D · **reespecificada por D-021**
 - **Decisión**: cada blob es un degradado radial (núcleo claro → cuerpo → profundo al 55 % →
   transparente) que se funde por completo dentro de su propio radio, sin borde. En API 31+ se
   añade `Modifier.blur(36dp)` a todo el canvas; en API 26–30 el degradado ya es suave. Deriva
@@ -413,4 +471,27 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
   `BlobBackground` reescrito según D-020 (`drawGlow` en vez de `drawBead`), layout y alfas
   de los blobs ajustados en `Glass.kt`. Sin cambios en tarjetas ni barra.
 - **Resultado**: `lintDebug`, `assembleRelease` y 5 tests en verde. 7 capturas enviadas a Vic.
-  Commit pusheado a `claude/android-personal-setup-hm95yj`.
+  Commit `0982c65` pusheado a `claude/android-personal-setup-hm95yj`. APK entregado a Vic.
+
+### S-007 · 2026-09-07 · Identidad visual de Esforia
+- **Petición de Vic**: tras probar el APK, "de funcionar funciona, pero no me gusta el diseño
+  visual". A la pregunta de qué falla: fondo y tipografía/colores/estructura; sobre cómo
+  deberían verse: "Identidad visual de Esforia, analiza el proyecto más a fondo sin tocar nada
+  de él".
+- **Hecho**:
+  1. Análisis de `esforia-app` (solo lectura): paletas, temas, CSS de shell y fondo, primitivas
+     de UI, páginas Home/Finance/Settings, icono. Resultado en
+     `docs/design/identidad-esforia.md` (5 apartados con valores exactos).
+  2. Fuentes Sora, Manrope e IBM Plex Mono descargadas de `google/fonts` (OFL, licencias en
+     `docs/design/OFL-*.txt`); Inter eliminada.
+  3. Reescritura de la capa visual según D-021: `Palette.kt` (sustituye a `Color.kt` y
+     `Glass.kt`), `Type.kt`, `Theme.kt`, `AmbientBackground.kt` (sustituye a
+     `BlobBackground.kt`), `Surfaces.kt`, `PageHeader.kt` (sustituye a `ScreenHeader.kt`),
+     `GlassSurface.kt` (solo barra; `softShadow` reemplaza a `glassShadow`), `BubbleNavBar.kt`,
+     `Destination.kt` (icono activo Filled + tono ambiental), `FinanceApp.kt`, `ScreenScaffold`
+     y una pantalla por archivo. `GlassRows.kt` y `PlaceholderScreen.kt` eliminados.
+  4. Strings EN/ES reescritas (≈70 claves).
+- **Problemas y cómo se resolvieron**:
+  1. `FontVariation` es API experimental en Compose 1.9 → `@OptIn(ExperimentalTextApi::class)`.
+- **Resultado**: `assembleDebug`, `assembleRelease` (1,3 MB), 5 tests y `lintDebug` en verde.
+  7 capturas enviadas a Vic. Commit pusheado a `claude/android-personal-setup-hm95yj`.
