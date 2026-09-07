@@ -93,7 +93,10 @@ class FinanceRepository(
         }
     }
 
+    /** Manual accounts only: a linked account would come back on the next sync — unlink its bank instead. */
     suspend fun deleteAccount(id: String) {
+        val account = data.value.accounts.firstOrNull { it.id == id } ?: return
+        require(account.source == Source.MANUAL) { "Linked accounts are removed by unlinking their bank" }
         store.update { d -> d.copy(accounts = d.accounts.filterNot { it.id == id }, transactions = d.transactions.filterNot { it.accountId == id }) }
     }
 
@@ -177,7 +180,9 @@ class FinanceRepository(
                 )
             }.filter { it.accountId in accountIds }
             val incomingIds = incoming.map { it.id }.toSet()
-            val kept = d.transactions.filterNot { it.id in incomingIds }
+            val liveAccountIds = untouched.map { it.id }.toSet() + accountIds
+            // Drop the incoming duplicates and anything left over from an account the bank no longer returns.
+            val kept = d.transactions.filterNot { it.id in incomingIds }.filter { it.accountId in liveAccountIds }
             d.copy(
                 accounts = untouched + accounts,
                 transactions = kept + incoming,

@@ -73,4 +73,28 @@ class FinanceRepositoryTest {
         assertEquals(listOf(manual.id), d.accounts.map { it.id })
         assertTrue(d.transactions.isEmpty())
     }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun deleting_a_linked_account_is_refused() = runTest {
+        val r = repo()
+        r.linkBank("mock", "demo")
+        r.deleteAccount(r.data.value.accounts.first().id)
+    }
+
+    @Test
+    fun sync_drops_transactions_of_accounts_the_bank_no_longer_returns() = runTest {
+        val first = repo()
+        first.linkBank("mock", "demo")
+        val seeded = first.data.value
+        val orphan = seeded.transactions.first().copy(id = "mock:ghost", accountId = "mock:gone")
+        val r = FinanceRepository(
+            store = InMemoryFinanceStore(seeded.copy(transactions = seeded.transactions + orphan)),
+            providers = mapOf("mock" to MockBankProvider(clock = { now }, latencyMillis = 0)),
+            clock = { now },
+        )
+        assertTrue(r.data.value.transactions.any { it.id == "mock:ghost" })
+        r.sync()
+        assertTrue(r.data.value.transactions.none { it.id == "mock:ghost" })
+        assertEquals(seeded.transactions.size, r.data.value.transactions.size)
+    }
 }

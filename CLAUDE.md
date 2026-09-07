@@ -45,4 +45,6 @@ Android app (Kotlin, Jetpack Compose, Material 3). Single module `:app`, package
 - Strings go in `res/values/strings.xml` (English) and `res/values-es/strings.xml` (Spanish); UI is Compose only, no XML layouts.
 - Never use Material `Card`/`Surface`/`Button` directly; use the Esforia primitives in `Surfaces.kt`. Colours only from `LocalPalette`, never hard-coded hex in screens.
 - Every scrollable screen is a `LazyColumn` with bottom padding `NavBarExpandedHeight + NavBarBottomMargin + navigation bars`; the bubble bar collapses via the nested-scroll connection in `FinanceApp`, screens must not manage it.
+- The five tabs are pages of a `HorizontalPager` inside the single `Routes.TABS` route (HANDOFF D-030); `pagerState.currentPage` is the source of truth for the active tab, background tone and bar. Switching tabs from a screen goes through the `onTab` lambda, never the NavController. Forms/details are routes on top. In screenshot tests, swipe on `onRoot()` (two `screen_list` nodes exist at once).
+- System bar icon colours are re-applied in `MainActivity` whenever the app theme changes; don't rely on `enableEdgeToEdge()` defaults.
 - Work proceeds in the 4 phases listed in `HANDOFF.md`; do not start the next phase until Vic has given feedback on the current one.

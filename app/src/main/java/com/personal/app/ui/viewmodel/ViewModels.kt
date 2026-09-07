@@ -47,6 +47,7 @@ inline fun <reified VM : ViewModel> appViewModel(crossinline create: (AppContain
 
 data class HomeUiState(
     val userName: String = "",
+    val todayMillis: Long = 0,
     val accounts: List<Account> = emptyList(),
     val totalMinor: Long = 0,
     val monthOverMonthPercent: Double? = null,
@@ -60,6 +61,7 @@ class HomeViewModel(private val repo: FinanceRepository, private val prefs: Pref
         val month = YearMonth.from(Instant.ofEpochMilli(repo.clock()).atZone(ZoneId.systemDefault()))
         HomeUiState(
             userName = p.name,
+            todayMillis = repo.clock(),
             accounts = d.accounts.sortedBy { it.createdAt },
             totalMinor = FinanceCalculator.totalBalance(d.accounts),
             monthOverMonthPercent = FinanceCalculator.monthOverMonthPercent(d.accounts, d.transactions, month),
@@ -277,6 +279,7 @@ class ProfileViewModel(private val prefs: PreferencesRepository, private val rep
 
 data class TransactionsUiState(
     val title: String? = null,
+    val today: java.time.LocalDate = java.time.LocalDate.MIN,
     val days: List<Pair<java.time.LocalDate, List<Transaction>>> = emptyList(),
     val accountsById: Map<String, Account> = emptyMap(),
 )
@@ -286,6 +289,7 @@ class TransactionsViewModel(private val repo: FinanceRepository, private val acc
         val scoped = if (accountId == null) d.transactions else d.transactions.filter { it.accountId == accountId }
         TransactionsUiState(
             title = accountId?.let { id -> d.accounts.firstOrNull { it.id == id }?.name },
+            today = Instant.ofEpochMilli(repo.clock()).atZone(ZoneId.systemDefault()).toLocalDate(),
             days = FinanceCalculator.groupByDay(scoped),
             accountsById = d.accounts.associateBy { it.id },
         )

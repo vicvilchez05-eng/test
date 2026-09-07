@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.swipeLeft
 import androidx.compose.ui.test.swipeUp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.takahirom.roborazzi.RobolectricDeviceQualifiers
@@ -83,7 +84,7 @@ class ScreenshotTest {
     @Test
     fun home_light_scrolled_navbar_collapsed() {
         setApp(dark = false)
-        compose.onNodeWithTag("screen_list").performTouchInput { swipeUp() }
+        compose.onRoot().performTouchInput { swipeUp() }
         compose.waitForIdle()
         compose.onRoot().captureRoboImage("screenshots/home_light_scrolled.png")
     }
@@ -103,7 +104,7 @@ class ScreenshotTest {
         setApp(dark = false)
         compose.onNodeWithTag("nav_balance").performClick(); compose.waitForIdle()
         compose.onRoot().captureRoboImage("screenshots/balance_light.png")
-        compose.onNodeWithTag("screen_list").performTouchInput { swipeUp() }; compose.waitForIdle()
+        compose.onRoot().performTouchInput { swipeUp() }; compose.waitForIdle()
         compose.onRoot().captureRoboImage("screenshots/balance_light_scrolled.png")
     }
 
@@ -142,6 +143,14 @@ class ScreenshotTest {
         setApp(dark = false)
         compose.onNodeWithTag("home_privacy").performClick(); compose.waitForIdle()
         compose.onRoot().captureRoboImage("screenshots/home_privacy_light.png")
+    }
+
+    @Test
+    fun swipe_between_tabs_light() {
+        setApp(dark = false)
+        compose.onRoot().performTouchInput { swipeLeft() }
+        compose.waitForIdle()
+        compose.onRoot().captureRoboImage("screenshots/swipe_to_accounts_light.png")
     }
 
     @Test

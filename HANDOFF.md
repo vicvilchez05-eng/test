@@ -56,8 +56,9 @@ terminadas (ver "Compactar" abajo y D-009).
   movimientos con borrado, desvincular banco, borrar todo.
 - **Fase 4 terminada** (S-012): informes semanal/mensual, serie de 6 meses, evolución de 30 días,
   Balance completo, exportación CSV y PDF con hoja de compartir.
-- **Las 4 fases del brief están hechas.** Pendiente: que Vic pruebe la exportación PDF en el
-  móvil (no se puede generar en Robolectric) y decida qué viene después (ver Pendientes).
+- **Las 4 fases del brief están hechas.** Después (S-013): deslizar entre pestañas con el dedo
+  (D-030) y una pasada de revisión con 4 correcciones. Pendiente: que Vic pruebe la exportación
+  PDF en el móvil y decida qué viene después (ver Pendientes).
 
 ## Plan por fases (especificación de Vic, 2026-09-07)
 
@@ -241,6 +242,23 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 - **Actualiza**: D-012 (blobs planos → gotas 3D), D-015 (paleta índigo/violeta/teal/rosa →
   periwinkle/champán/lila), D-018 (iconos Rounded → Outlined). Las tres siguen vigentes en lo
   demás.
+
+### D-030 · 2026-09-07 · Las pestañas son un `HorizontalPager`; la barra solo lo refleja
+- **Decisión**: el `NavHost` tiene una única ruta `tabs` que contiene un `HorizontalPager` con
+  las 5 pantallas (`beyondViewportPageCount = 1`, clave por ruta). Deslizar o tocar la barra
+  hacen lo mismo: `animateScrollToPage`. `current` sale de `pagerState.currentPage` y arrastra
+  el tono del fondo. Formularios y detalles siguen siendo rutas encima que ocultan la barra.
+  Ajustes salta a Cuentas/Balance con un `onTab` que mueve el pager.
+- **Por qué**: Vic: "que se pueda deslizar con el dedo de pestaña a pestaña, sin tener que estar
+  tocando siempre la barra". Navigation Compose no tiene gesto horizontal entre destinos.
+- **Para qué**: navegación con el pulgar y una sola fuente de verdad para "qué pestaña está activa".
+- **Descartado**: detectar el gesto a mano y navegar (sin arrastre visual ni cancelación);
+  mantener las pestañas como rutas y animar (pierde el gesto continuo).
+- **Efectos**: ya no hay pila de atrás entre pestañas (atrás en `tabs` sale de la app, como en
+  la mayoría de apps con paginador). La posición de scroll de cada pestaña se conserva mientras
+  la página siga compuesta (vecinas) y se restaura por `rememberSaveable` en las demás.
+- **Tests**: con el pager hay dos `screen_list` compuestos a la vez (visible + vecina), así que
+  los gestos de las capturas van sobre `onRoot()`, nunca sobre la etiqueta.
 
 ### D-028 · 2026-09-07 · Exportación con `PdfDocument` + `FileProvider`, sin librerías
 - **Decisión**: `ExportManager` genera el CSV (RFC 4180, coma, comillas dobladas, importes con
@@ -641,6 +659,32 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
   de los blobs ajustados en `Glass.kt`. Sin cambios en tarjetas ni barra.
 - **Resultado**: `lintDebug`, `assembleRelease` y 5 tests en verde. 7 capturas enviadas a Vic.
   Commit `0982c65` pusheado a `claude/android-personal-setup-hm95yj`. APK entregado a Vic.
+
+### S-013 · 2026-09-07 · Deslizar entre pestañas + revisión de bugs
+- **Petición de Vic**: deslizar con el dedo entre pestañas y "fíjate si hay algún error o bug".
+- **Hecho**: `HorizontalPager` para las pestañas (D-030): `AppNavHost` con ruta `tabs` +
+  `TabsPager`, `FinanceApp` con `pagerState`, `onTab`. Captura nueva `swipe_to_accounts_light`.
+- **Bugs encontrados y corregidos en la revisión**:
+  1. **Iconos de la barra de estado invisibles** al forzar tema oscuro con el sistema en claro
+     (o al revés): `enableEdgeToEdge()` solo miraba el tema del sistema. Ahora se reaplica con
+     `SystemBarStyle` cada vez que cambia el tema de la app.
+  2. **Movimientos huérfanos tras sincronizar**: si el banco dejaba de devolver una cuenta, sus
+     movimientos antiguos quedaban colgando. `syncConnection` ahora conserva solo los de cuentas
+     vivas. Test `sync_drops_transactions_of_accounts_the_bank_no_longer_returns`.
+  3. **Borrar una cuenta vinculada la resucitaba en la siguiente sincronización**: la UI ya
+     ofrecía "desvincular" para esas cuentas, pero el repositorio lo permitía. Ahora
+     `deleteAccount` lo rechaza (`require`). Test `deleting_a_linked_account_is_refused`.
+  4. **Reloj mezclado**: "Hoy/Ayer" en Movimientos y la fecha del saludo usaban el reloj del
+     sistema mientras todo lo demás usa `repository.clock`. Unificado (visible solo en tests,
+     pero rompía la regla de CLAUDE.md).
+- **Revisado sin hallazgos**: cálculo de totales y variación mensual, generación determinista
+  del sandbox, idempotencia de sync, flujo alta de movimiento sin cuentas → alta de cuenta →
+  vuelta con la cuenta seleccionada, gráficas con listas vacías o valores iguales (sin
+  división por cero), FileProvider y autoridad, privacidad en todas las cifras, plurales.
+- **Problema de test**: con el pager, `onNodeWithTag("screen_list")` tocaba la lista de la
+  página vecina fuera de pantalla ("Failed to inject touch input") → gestos sobre `onRoot()`.
+- **Resultado**: 37 tests (1 omitido: PDF en Robolectric), lint en verde, release 1,9 MB.
+  Commit pusheado a `claude/android-personal-setup-hm95yj`. APK enviado a Vic.
 
 ### S-012 · 2026-09-07 · Fase 4: informes, gráfica de evolución, exportación PDF/CSV
 - **Petición de Vic**: continuar con las fases restantes.

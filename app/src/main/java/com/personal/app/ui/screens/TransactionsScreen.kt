@@ -50,7 +50,7 @@ fun TransactionsScreen(accountId: String?, onDone: () -> Unit) {
         }
         s.days.forEach { (day, txs) ->
             item(key = "day-$day") {
-                GroupLabel(dayLabel(day, dayFormat))
+                GroupLabel(dayLabel(day, s.today, dayFormat))
                 SurfaceCard(Modifier.fillMaxWidth(), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)) {
                     txs.forEachIndexed { i, tx ->
                         Box(Modifier.pressable { selected = tx }) { TransactionRow(tx) }
@@ -83,8 +83,7 @@ fun TransactionsScreen(accountId: String?, onDone: () -> Unit) {
 }
 
 @Composable
-private fun dayLabel(day: LocalDate, format: DateTimeFormatter): String {
-    val today = LocalDate.now()
+private fun dayLabel(day: LocalDate, today: LocalDate, format: DateTimeFormatter): String {
     return when (day) {
         today -> stringResource(R.string.today)
         today.minusDays(1) -> stringResource(R.string.yesterday)

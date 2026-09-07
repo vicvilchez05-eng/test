@@ -80,7 +80,7 @@ fun HomeScreen(
     val vm = appViewModel { HomeViewModel(it.repository, it.preferences) }
     val s by vm.state.collectAsStateWithLifecycle()
     val p = LocalPalette.current
-    val date = remember { SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date()).replaceFirstChar { it.uppercase() } }
+    val date = remember(s.todayMillis) { SimpleDateFormat("EEEE, d MMMM", Locale.getDefault()).format(Date(s.todayMillis)).replaceFirstChar { it.uppercase() } }
 
     ScreenScaffold {
         item {

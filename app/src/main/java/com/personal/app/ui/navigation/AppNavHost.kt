@@ -5,80 +5,69 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import androidx.navigation.NavType
 import com.personal.app.ui.screens.AccountDetailScreen
-import com.personal.app.ui.screens.CurrencyScreen
-import com.personal.app.ui.screens.TransactionsScreen
 import com.personal.app.ui.screens.AccountsScreen
 import com.personal.app.ui.screens.AddAccountScreen
 import com.personal.app.ui.screens.AddTransactionScreen
+import com.personal.app.ui.screens.CurrencyScreen
 import com.personal.app.ui.screens.HomeScreen
 import com.personal.app.ui.screens.LinkBankScreen
 import com.personal.app.ui.screens.ProfileScreen
 import com.personal.app.ui.screens.SettingsScreen
 import com.personal.app.ui.screens.TotalBalanceScreen
+import com.personal.app.ui.screens.TransactionsScreen
 
-/** Non-tab routes (forms) slide up over the tabs and hide the bottom bar. */
+/**
+ * Two layers of navigation:
+ *  - the five tabs live in ONE route ([Routes.TABS]) as a [HorizontalPager], so a horizontal
+ *    swipe moves between them and the bottom bar just mirrors the pager (HANDOFF D-030);
+ *  - forms and detail screens are real routes pushed on top; they slide up and hide the bar.
+ */
 object Routes {
+    const val TABS = "tabs"
     const val ADD_TRANSACTION = "add_transaction"
     const val ADD_ACCOUNT = "add_account"
     const val LINK_BANK = "link_bank"
     const val CURRENCY = "settings/currency"
     const val TRANSACTIONS = "transactions?accountId={accountId}"
     const val ACCOUNT = "account/{id}"
-    val forms = setOf(ADD_TRANSACTION, ADD_ACCOUNT, LINK_BANK, CURRENCY, TRANSACTIONS, ACCOUNT)
     fun transactions(accountId: String? = null) = if (accountId == null) "transactions" else "transactions?accountId=$accountId"
     fun account(id: String) = "account/$id"
 }
 
 @Composable
-fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
+fun AppNavHost(
+    navController: NavHostController,
+    pagerState: PagerState,
+    onTab: (Destination) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val back: () -> Unit = { navController.popBackStack() }
+    val slideIn = slideInVertically(tween(260)) { it / 6 } + fadeIn(tween(200))
+    val slideOut = slideOutVertically(tween(200)) { it / 6 } + fadeOut(tween(160))
+
     NavHost(
         navController = navController,
-        startDestination = Destination.start.route,
+        startDestination = Routes.TABS,
         modifier = modifier,
-        // Cross-fade between tabs; the background stays put, which is what makes it feel fluid.
         enterTransition = { fadeIn(tween(220)) },
         exitTransition = { fadeOut(tween(160)) },
         popEnterTransition = { fadeIn(tween(220)) },
         popExitTransition = { fadeOut(tween(160)) },
     ) {
-        composable(Destination.Home.route) {
-            HomeScreen(
-                onAddTransaction = { navController.navigate(Routes.ADD_TRANSACTION) },
-                onLinkBank = { navController.navigate(Routes.LINK_BANK) },
-                onAddAccount = { navController.navigate(Routes.ADD_ACCOUNT) },
-                onAccount = { navController.navigate(Routes.account(it)) },
-                onAllTransactions = { navController.navigate(Routes.transactions()) },
-            )
+        composable(Routes.TABS) {
+            TabsPager(pagerState, navController, onTab)
         }
-        composable(Destination.Accounts.route) {
-            AccountsScreen(
-                onLinkBank = { navController.navigate(Routes.LINK_BANK) },
-                onAddAccount = { navController.navigate(Routes.ADD_ACCOUNT) },
-                onAccount = { navController.navigate(Routes.account(it)) },
-            )
-        }
-        composable(Destination.Balance.route) { TotalBalanceScreen() }
-        composable(Destination.Settings.route) {
-            SettingsScreen(
-                onCurrency = { navController.navigate(Routes.CURRENCY) },
-                onAccounts = { navController.navigateToTab(Destination.Accounts) },
-                onExport = { navController.navigateToTab(Destination.Balance) },
-            )
-        }
-        composable(Destination.Profile.route) { ProfileScreen(onLinkBank = { navController.navigate(Routes.LINK_BANK) }) }
-
-        val slideIn = slideInVertically(tween(260)) { it / 6 } + fadeIn(tween(200))
-        val slideOut = slideOutVertically(tween(200)) { it / 6 } + fadeOut(tween(160))
         composable(Routes.ADD_TRANSACTION, enterTransition = { slideIn }, popExitTransition = { slideOut }) {
             AddTransactionScreen(onDone = back, onAddAccount = { navController.navigate(Routes.ADD_ACCOUNT) })
         }
@@ -109,11 +98,35 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
     }
 }
 
-/** Standard bottom-bar navigation: one back-stack entry per tab, state saved and restored. */
-fun NavHostController.navigateToTab(destination: Destination) {
-    navigate(destination.route) {
-        popUpTo(graph.findStartDestination().id) { saveState = true }
-        launchSingleTop = true
-        restoreState = true
+/** The five tabs side by side. Neighbours stay composed so a swipe never lands on a blank page. */
+@Composable
+private fun TabsPager(pagerState: PagerState, navController: NavHostController, onTab: (Destination) -> Unit) {
+    HorizontalPager(
+        state = pagerState,
+        modifier = Modifier.fillMaxSize(),
+        beyondViewportPageCount = 1,
+        key = { Destination.entries[it].route },
+    ) { page ->
+        when (Destination.entries[page]) {
+            Destination.Home -> HomeScreen(
+                onAddTransaction = { navController.navigate(Routes.ADD_TRANSACTION) },
+                onLinkBank = { navController.navigate(Routes.LINK_BANK) },
+                onAddAccount = { navController.navigate(Routes.ADD_ACCOUNT) },
+                onAccount = { navController.navigate(Routes.account(it)) },
+                onAllTransactions = { navController.navigate(Routes.transactions()) },
+            )
+            Destination.Accounts -> AccountsScreen(
+                onLinkBank = { navController.navigate(Routes.LINK_BANK) },
+                onAddAccount = { navController.navigate(Routes.ADD_ACCOUNT) },
+                onAccount = { navController.navigate(Routes.account(it)) },
+            )
+            Destination.Balance -> TotalBalanceScreen()
+            Destination.Settings -> SettingsScreen(
+                onCurrency = { navController.navigate(Routes.CURRENCY) },
+                onAccounts = { onTab(Destination.Accounts) },
+                onExport = { onTab(Destination.Balance) },
+            )
+            Destination.Profile -> ProfileScreen(onLinkBank = { navController.navigate(Routes.LINK_BANK) })
+        }
     }
 }
