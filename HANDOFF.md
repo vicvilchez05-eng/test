@@ -57,8 +57,8 @@ terminadas (ver "Compactar" abajo y D-009).
 - **Fase 4 terminada** (S-012): informes semanal/mensual, serie de 6 meses, evolución de 30 días,
   Balance completo, exportación CSV y PDF con hoja de compartir.
 - **Las 4 fases del brief están hechas.** Después (S-013): deslizar entre pestañas con el dedo
-  (D-030) y una pasada de revisión con 4 correcciones. Pendiente: que Vic pruebe la exportación
-  PDF en el móvil y decida qué viene después (ver Pendientes).
+  (D-030) y una pasada de revisión con 4 correcciones. PDF verificado en el móvil por Vic.
+  Proyecto en pausa por decisión de Vic ("mejor lo dejamos así"); rama sin fusionar en `main`.
 
 ## Plan por fases (especificación de Vic, 2026-09-07)
 
@@ -95,9 +95,13 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
   Sandbox local (`MockBankProvider`) + plantilla documentada (`OpenBankingProviderTemplate`).
 - [x] Feedback de Vic sobre la Fase 2 → aprobada, continuar con 3 y 4 sin parar.
 - [x] Nombre del saludo → editable en Perfil (`UserPreferences.name`); vacío muestra "¡Hola!".
-- [ ] **Probar en el móvil la exportación PDF** (Balance → Exportar informe). Robolectric no
-  implementa `PdfDocument` (nativo), así que el test se omite y el PDF solo está revisado en
-  código. El CSV sí está probado.
+- [x] Exportación PDF **verificada por Vic en el móvil** (2026-09-08, captura del visor): dos
+  páginas correctas, cabecera de tabla repetida, numeración. El test sigue omitido en Robolectric.
+- [ ] Cosmética del sandbox vista en ese PDF (no pedida): la cuenta "Neo Account" acaba en
+  negativo (saldo inicial 830 € frente a ~2.000 €/mes de gasto) y facturas/suscripciones
+  (Vodafone, Spotify) se repiten varios días seguidos e incluso el mismo día. Arreglo barato:
+  subir el saldo inicial de neo y hacer que facturas y suscripciones caigan en un día fijo del
+  mes. Vic dijo "mejor lo dejamos así"; queda anotado por si se retoma.
 - [ ] Ideas de continuación (no pedidas): presupuestos por categoría, metas de ahorro,
   recordatorio de registro, keystore propio para actualizar sin desinstalar (D-005),
   icono/splash propios, temas de Esforia.
