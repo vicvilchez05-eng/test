@@ -1,1 +1,43 @@
-# test
+# PersonalApp
+
+App Android de uso personal (Kotlin + Jetpack Compose + Material 3).
+
+> El nombre `PersonalApp` y el paquete `com.personal.app` son provisionales
+> hasta definir la funcionalidad de la app.
+
+## Requisitos
+
+- JDK 17 o superior (probado con JDK 21)
+- Android SDK con `platforms;android-36`, `build-tools;35.0.0` y `platform-tools`
+- `local.properties` con `sdk.dir=/ruta/al/sdk` (se genera solo en Claude Code web)
+
+## Comandos
+
+```bash
+./gradlew assembleDebug        # APK de debug -> app/build/outputs/apk/debug/app-debug.apk
+./gradlew assembleRelease      # APK release (R8, firmado con la clave debug) -> app/build/outputs/apk/release/
+./gradlew testDebugUnitTest    # tests unitarios
+./gradlew lintDebug            # Android Lint
+adb install -r app/build/outputs/apk/debug/app-debug.apk   # instalar en un móvil por USB
+```
+
+## Estructura
+
+```
+app/src/main/java/com/personal/app/   codigo Kotlin (MainActivity, ui/theme)
+app/src/main/res/                     recursos (strings, tema, icono adaptativo)
+app/src/test/                         tests unitarios (JUnit 4)
+gradle/libs.versions.toml             catalogo de versiones
+.claude/hooks/session-start.sh        instala el SDK en Claude Code web
+```
+
+## Versiones
+
+| Componente | Version |
+|---|---|
+| Gradle | 8.14.3 |
+| Android Gradle Plugin | 8.13.2 |
+| Kotlin | 2.4.10 |
+| Compose BOM | 2025.08.00 |
+| compileSdk / targetSdk | 36 |
+| minSdk | 26 (Android 8.0) |
