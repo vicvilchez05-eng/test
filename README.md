@@ -1,8 +1,9 @@
 # PersonalApp
 
 App Android de finanzas personales, de uso personal (Kotlin + Jetpack Compose + Material 3).
-Estética liquid glass sobre un fondo de blobs animados, con barra inferior flotante que se
-encoge al hacer scroll. Se desarrolla en 4 fases (ver `HANDOFF.md`).
+Estética de la guía visual de Vic (`docs/design/`): fondo lavanda con gotas de cristal 3D
+animadas, tarjetas blancas esmeriladas, tipografía Inter y barra inferior flotante que se encoge
+al hacer scroll. Se desarrolla en 4 fases (ver `HANDOFF.md`).
 
 > El nombre `PersonalApp` y el paquete `com.personal.app` son provisionales
 > hasta definir la funcionalidad de la app.
@@ -35,10 +36,11 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk   # instalar en un móv
 app/src/main/java/com/personal/app/
   FinanceApp.kt                       raiz de la UI: fondo -> pantalla -> barra
   ui/theme/                           colores, tipografia, tokens glass (Glass.kt), tema
-  ui/components/                      BlobBackground, GlassSurface/GlassCard, BubbleNavBar, NavBarScrollState
+  ui/components/                      BlobBackground, GlassSurface/GlassCard, GlassRowGroup, ScreenHeader, BubbleNavBar, NavBarScrollState
   ui/navigation/                      Destination (5 pestañas) y AppNavHost
   ui/screens/                         PlaceholderScreen y las 5 pantallas
-app/src/main/res/                     strings (en + es), tema, icono adaptativo
+app/src/main/res/                     strings (en + es), fuente Inter, tema, icono adaptativo
+docs/design/                          guia visual de referencia y licencia de Inter
 app/src/test/                         tests unitarios y de captura (Robolectric + Roborazzi)
 gradle/libs.versions.toml             catalogo de versiones
 .claude/hooks/session-start.sh        instala el SDK en Claude Code web

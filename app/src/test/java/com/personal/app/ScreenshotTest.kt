@@ -49,20 +49,20 @@ class ScreenshotTest {
     }
 
     @Test
-    fun home_dark_scrolled_navbar_collapsed() {
-        setApp(dark = true)
+    fun home_light_scrolled_navbar_collapsed() {
+        setApp(dark = false)
         compose.onNodeWithTag("screen_list").performTouchInput { swipeUp() }
         compose.waitForIdle()
-        compose.onRoot().captureRoboImage("screenshots/home_dark_scrolled.png")
+        compose.onRoot().captureRoboImage("screenshots/home_light_scrolled.png")
     }
 
     @Test
-    fun other_tabs_dark() {
-        setApp(dark = true)
+    fun other_tabs_light() {
+        setApp(dark = false)
         listOf("accounts", "balance", "settings", "profile").forEach { route ->
             compose.onNodeWithTag("nav_$route").performClick()
             compose.waitForIdle()
-            compose.onRoot().captureRoboImage("screenshots/${route}_dark.png")
+            compose.onRoot().captureRoboImage("screenshots/${route}_light.png")
         }
     }
 }

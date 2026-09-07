@@ -31,9 +31,12 @@ terminadas (ver "Compactar" abajo y D-009).
 - **Repo**: `vicvilchez05-eng/test`, rama de trabajo `claude/android-personal-setup-hm95yj`.
 - **Qué es**: app de **finanzas personales** (ver "Plan por fases"). Kotlin + Jetpack Compose +
   Material 3.
-- **Fase 1 terminada, pendiente de feedback de Vic**: fondo de blobs animado, tema liquid glass,
-  barra inferior burbuja que se encoge al bajar y se expande al subir, y las 5 pantallas vacías
-  (Home, Accounts, Total Balance, Settings, Profile) con navegación.
+- **Fase 1 terminada y reestilizada según la guía visual de Vic** (S-005, D-019), pendiente de
+  su feedback: fondo de gotas de cristal 3D animadas, tarjetas blancas esmeriladas, cabeceras en
+  versalitas, tipografía Inter, barra inferior blanca compacta con círculo elevado, y las 5
+  pantallas vacías (Home, Accounts, Total Balance, Settings, Profile) con navegación.
+- **Guía visual de referencia**: `docs/design/guia-visual-vic-2026-09-07.png`. Toda decisión
+  de estilo se contrasta con ella. Léela (Read) antes de tocar la UI.
 - **Verificación**: compila (debug y release), tests y lint en verde, y capturas de pantalla
   reales generadas en JVM con Roborazzi (`./gradlew recordRoborazziDebug` → `app/screenshots/`).
 - **Nombre y paquete**: `PersonalApp` / `com.personal.app`, **provisionales**.
@@ -65,7 +68,7 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 
 ## Pendientes / preguntas abiertas
 
-- [ ] **Feedback de Vic sobre la Fase 1** antes de empezar la Fase 2.
+- [ ] **Feedback de Vic sobre la Fase 1 reestilizada** (S-005) antes de empezar la Fase 2.
 - [ ] Decidir nombre definitivo y paquete (`applicationId`), renombrar `com.personal.app`.
 - [ ] Fase 2: elegir proveedor de Open Banking sandbox (Plaid vs Tink) y si Vic tiene cuenta.
 - [ ] Probar en un móvil real: rendimiento del fondo (blur + 4 gradientes por frame) y tacto del
@@ -172,6 +175,39 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 - **Descartado**: compactar solo a petición (D-008 original): obliga a Vic a vigilar el tamaño.
   Resumir en vez de borrar: el resumen sigue creciendo y no ataja el problema.
 
+### D-019 · 2026-09-07 · Giro visual: se adopta la guía de Vic (lavanda, gotas 3D, blanco esmerilado)
+- **Decisión**: se abandona el look oscuro y saturado de S-004 y se reconstruye la capa visual
+  siguiendo `docs/design/guia-visual-vic-2026-09-07.png`:
+  - **Fondo**: base lavanda muy clara (`#E2E5F6`) con 5 gotas de cristal en periwinkle, champán
+    y lila. Cada gota es una elipse sombreada como una cuenta de vidrio (lado iluminado → cuerpo
+    → borde profundo, banda de refracción, brillo amplio y punto especular), con deriva Lissajous
+    lenta más un leve bamboleo de rotación y aplastamiento. Blur de canvas de solo 3dp (API 31+).
+  - **Tarjetas**: blanco al 82→70 %, radio 16dp, borde blanco arriba y línea azul marino al 8 %
+    abajo, sombra muy suave (alfa 0,10). Listas agrupadas en una tarjeta con filas de 44dp y
+    separadores finos, como los grupos de ajustes de la guía.
+  - **Tipografía**: Inter (OFL, 4 pesos en `res/font`, ~1,7 MB). Cabeceras de pantalla en
+    versalitas con tracking (`labelLarge`), números grandes en Bold con tracking negativo.
+  - **Texto**: azul marino `#1B2140` y gris azulado `#6B7194`. Acento verde `#2E9E5B` para el
+    chip "+ Trend".
+  - **Barra inferior**: píldora blanca esmerilada de 64dp (50dp encogida), iconos Outlined de
+    22dp con etiqueta de 10sp, y un círculo blanco elevado de 40dp que se desliza bajo el icono
+    activo. Encogida: 50dp, sin etiquetas, márgenes 56dp.
+  - **Cabecera**: `ScreenHeader` de 48dp con título centrado en versalitas y acciones de icono
+    a izquierda (atrás) y derecha (sync, campana, +). Solo visual en Fase 1.
+  - **Modo oscuro**: traducción fiel (base `#11152A`, tarjetas azul marino esmerilado al 82 %,
+    gotas con tonos "Night" más saturados para no ensuciarse sobre azul marino). La guía es
+    solo clara; el oscuro existe porque la guía muestra un toggle "Dark Mode".
+- **Por qué**: Vic dijo "no me gusta el estilo visual, te dejo una guía". La guía es luminosa,
+  limpia y de contraste bajo; lo de S-004 era oscuro, saturado y con blobs planos.
+- **Para qué**: que cada pantalla futura tenga una referencia concreta que imitar en vez de un
+  adjetivo ("premium").
+- **Descartado**: mantener el tema oscuro como principal (la guía es clara); backdrop blur real
+  (sigue sin compensar, ver D-010); fuente del sistema (Inter es lo que da el acabado de la guía
+  y pesa poco tras R8).
+- **Actualiza**: D-012 (blobs planos → gotas 3D), D-015 (paleta índigo/violeta/teal/rosa →
+  periwinkle/champán/lila), D-018 (iconos Rounded → Outlined). Las tres siguen vigentes en lo
+  demás.
+
 ### D-010 · 2026-09-07 · "Glassmorphism CSS" se traduce a modificadores Compose, sin blur de fondo real
 - **Decisión**: `GlassSurface` = relleno degradado translúcido + borde degradado de 1dp (más
   brillante arriba-izquierda) + brillo radial en la esquina + línea clara en el borde superior.
@@ -190,7 +226,7 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
   y las oscurece; el `dropShadow` de Compose 1.9 rellena también el interior.
 - **Para qué**: sombra que funciona en todas las APIs y en Robolectric, sin ensuciar el cristal.
 
-### D-012 · 2026-09-07 · Fondo de blobs en Canvas con trayectorias Lissajous
+### D-012 · 2026-09-07 · Fondo de blobs en Canvas con trayectorias Lissajous · **actualizada por D-019**
 - **Decisión**: `BlobBackground`: 4 círculos con degradado radial que se desvanece, cada uno con
   su ciclo de 23 a 37 s (cos en X, sin(2t) en Y), radio con un pulso del 6 %, y `Modifier.blur`
   de 56dp sobre todo el canvas (solo API 31+; en menores el degradado ya es suave).
@@ -219,7 +255,7 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
   no compensa. El cross-fade mantiene el fondo quieto, que es lo que da la sensación fluida.
 - **Para qué**: navegación estándar, fácil de ampliar con sub-pantallas en Fase 3.
 
-### D-015 · 2026-09-07 · Color dinámico (Material You) desactivado
+### D-015 · 2026-09-07 · Color dinámico (Material You) desactivado · **paleta actualizada por D-019**
 - **Decisión**: paleta fija (índigo, violeta, teal, rosa) en claro y oscuro.
 - **Por qué**: el look glass depende de esa paleta; los colores del fondo de pantalla del usuario
   chocarían con ella.
@@ -239,7 +275,7 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 - **Por qué**: el brief usa nombres en inglés; el móvil de Vic probablemente esté en español.
 - **Para qué**: la app se ve en el idioma del sistema sin tocar código.
 
-### D-018 · 2026-09-07 · `material-icons-extended` para los iconos de la barra
+### D-018 · 2026-09-07 · `material-icons-extended` para los iconos de la barra · **Outlined desde D-019**
 - **Decisión**: dependencia completa de iconos extendidos.
 - **Por qué**: "Wallet" e "Insights" no están en el set básico. R8 elimina los no usados en
   release, así que el peso solo afecta al APK de debug.
@@ -316,3 +352,28 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
   `claude/android-personal-setup-hm95yj`.
 - **Avisos de lint que quedan** (no bloqueantes): versiones más nuevas disponibles (por D-003)
   y el `-v26` del icono (por D-004).
+
+### S-005 · 2026-09-07 · Reestilizado de la Fase 1 según la guía visual de Vic
+- **Petición de Vic**: "no me gusta el estilo visual, te dejo una guía" + imagen con 4 pantallas
+  (Home, Mis Cuentas, Balance Total Detallado, Perfil y Ajustes). Guardada en
+  `docs/design/guia-visual-vic-2026-09-07.png`.
+- **Hecho** (detalle en D-019):
+  - `Color.kt`, `Type.kt` (Inter), `Glass.kt` (tokens nuevos: `cornerRadius`, `shadowElevation`,
+    `divider`, `navSelected*`, `BlobSpec` con `aspect`/`rotation`/colores de sombreado),
+    `Theme.kt` (claro como principal).
+  - `BlobBackground` reescrito: `drawBead` en 4 pasadas por gota.
+  - `GlassSurface`: radio y sombra desde tokens, brillo más contenido.
+  - `BubbleNavBar` reescrito: círculo elevado deslizante, iconos Outlined.
+  - Nuevos `ScreenHeader` (+ `HeaderAction`) y `GlassRowGroup`/`GlassRow` (+ `GlassRowItem`).
+  - `PlaceholderScreen` rehecho: cabecera, hero centrado con chip, acciones rápidas (Home) y
+    grupos de filas. Suficiente contenido en Home para hacer scroll.
+  - Tests de captura ahora en claro (tema principal) + una en oscuro.
+  - Fuente Inter 4.1 en `res/font` (licencia en `docs/design/INTER-LICENSE.txt`).
+- **Problemas y cómo se resolvieron**:
+  1. Captura "scrolled" idéntica a la normal (dos veces): la Home cabía en pantalla y la barra,
+     correctamente, no se encogía. Se añadieron grupos hasta desbordar.
+  2. Gotas champán turbias en oscuro → juego de tonos "Night" más saturados.
+  3. Tarjetas oscuras demasiado transparentes → relleno azul marino al 82 % en vez de blanco al 12 %.
+  4. Lint `UnusedResources` (`home_subtitle`) → eliminado.
+- **Resultado**: `assembleDebug`, `assembleRelease` (1,9 MB), 5 tests y `lintDebug` en verde.
+  7 capturas enviadas a Vic. Commit pusheado a `claude/android-personal-setup-hm95yj`.

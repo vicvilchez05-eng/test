@@ -32,22 +32,20 @@ import androidx.compose.ui.unit.dp
 import com.personal.app.ui.theme.LocalGlass
 import kotlin.math.pow
 
-val GlassCornerRadius = 24.dp
 
 /**
- * The base "liquid glass" surface: translucent gradient fill, 1dp gradient border that is
- * brightest at the top-left (light source), a soft sheen in the top-left corner and a soft
- * drop shadow that is clipped out of the surface itself so the glass stays translucent.
+ * The base frosted-glass surface from the guide: a near-opaque white fill with a faint vertical
+ * gradient, a 1dp border that is pure white on top and a hairline navy at the bottom, a soft
+ * sheen in the top-left corner and a very soft drop shadow clipped out of the surface itself.
  *
- * Real backdrop blur is not applied: on Android a backdrop filter needs API 31 RenderEffect and
- * costs a full extra render pass. Because the blob background is already blurred, translucency
- * alone reads as glass.
+ * Real backdrop blur is not applied: it needs API 31 RenderEffect and an extra render pass per
+ * card, and with an 80 % white fill the blobs behind already read as frosted.
  */
 @Composable
 fun GlassSurface(
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(GlassCornerRadius),
-    shadowElevation: Dp = 16.dp,
+    shape: Shape = RoundedCornerShape(LocalGlass.current.cornerRadius),
+    shadowElevation: Dp = LocalGlass.current.shadowElevation,
     tint: Color = Color.Unspecified,
     onClick: (() -> Unit)? = null,
     content: @Composable BoxScope.() -> Unit,
@@ -55,9 +53,9 @@ fun GlassSurface(
     val glass = LocalGlass.current
     val interaction = remember { MutableInteractionSource() }
     val fill = if (tint.isSpecified) {
-        // Tinted glass: colour must stay translucent, so the alpha is fixed rather than derived from the fill.
-        if (glass.isDark) listOf(tint.copy(alpha = 0.36f), tint.copy(alpha = 0.16f))
-        else listOf(tint.copy(alpha = 0.30f), tint.copy(alpha = 0.14f))
+        // Tinted glass: a wash of colour over the frosted fill, still translucent.
+        if (glass.isDark) listOf(tint.copy(alpha = 0.30f), tint.copy(alpha = 0.14f))
+        else listOf(tint.copy(alpha = 0.55f), tint.copy(alpha = 0.40f))
     } else {
         listOf(glass.fillTop, glass.fillBottom)
     }
@@ -72,8 +70,8 @@ fun GlassSurface(
                 drawRect(
                     Brush.radialGradient(
                         colors = listOf(glass.highlight, Color.Transparent),
-                        center = Offset(size.width * 0.18f, 0f),
-                        radius = size.width * 0.6f,
+                        center = Offset(size.width * 0.12f, 0f),
+                        radius = size.width * 0.45f,
                     ),
                 )
                 // Thin bright edge along the top.
@@ -114,8 +112,8 @@ fun GlassSurface(
 @Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
-    shape: Shape = RoundedCornerShape(GlassCornerRadius),
-    contentPadding: Dp = 20.dp,
+    shape: Shape = RoundedCornerShape(LocalGlass.current.cornerRadius),
+    contentPadding: Dp = 16.dp,
     tint: Color = Color.Unspecified,
     onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,

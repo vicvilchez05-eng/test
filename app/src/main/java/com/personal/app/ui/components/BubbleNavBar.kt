@@ -5,7 +5,6 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -21,7 +20,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,8 +30,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -46,17 +42,16 @@ import androidx.compose.ui.unit.lerp
 import com.personal.app.ui.navigation.Destination
 import com.personal.app.ui.theme.LocalGlass
 
-val NavBarExpandedHeight = 72.dp
-val NavBarCollapsedHeight = 54.dp
-val NavBarBottomMargin = 14.dp
+val NavBarExpandedHeight = 64.dp
+val NavBarCollapsedHeight = 50.dp
+val NavBarBottomMargin = 12.dp
 
 /**
- * Floating "bubble" bottom navigation bar.
+ * Floating bottom bar from the guide: a compact white frosted pill, thin outline icons with tiny
+ * labels, and a raised white circle that slides under the selected icon.
  *
- * Two states driven by [collapsed]: expanded (icon + label, wide) and collapsed (icon only,
- * narrower, shorter). The transition is a single spring-animated progress value, so height,
- * side margins, icon size and label opacity all move together and can be interrupted mid-way.
- * A glass "bubble" indicator slides under the selected item.
+ * [collapsed] drives a single spring-animated progress: height (64→50dp), side margins, icon
+ * size, circle size and label opacity all move together and can be interrupted mid-way.
  */
 @Composable
 fun BubbleNavBar(
@@ -66,16 +61,19 @@ fun BubbleNavBar(
     collapsed: Boolean,
     modifier: Modifier = Modifier,
 ) {
+    val glass = LocalGlass.current
     val progress by animateFloatAsState(
         targetValue = if (collapsed) 1f else 0f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow),
         label = "navBarCollapse",
     )
     val height = lerp(NavBarExpandedHeight, NavBarCollapsedHeight, progress)
-    val sideMargin = lerp(20.dp, 44.dp, progress)
-    val iconSize = lerp(24.dp, 21.dp, progress)
-    val labelHeight = lerp(16.dp, 0.dp, progress)
+    val sideMargin = lerp(24.dp, 56.dp, progress)
+    val iconSize = lerp(22.dp, 20.dp, progress)
+    val circleSize = lerp(40.dp, 36.dp, progress)
+    val labelHeight = lerp(14.dp, 0.dp, progress)
     val labelAlpha = (1f - progress * 1.8f).coerceIn(0f, 1f)
+    val verticalPadding = lerp(6.dp, 7.dp, progress)
 
     GlassSurface(
         modifier = modifier
@@ -84,33 +82,36 @@ fun BubbleNavBar(
             .height(height)
             .testTag("bubble_nav_bar"),
         shape = CircleShape,
-        shadowElevation = 20.dp,
+        shadowElevation = 16.dp,
     ) {
         BoxWithConstraints(
             Modifier
                 .fillMaxSize()
-                .padding(horizontal = 8.dp, vertical = 6.dp),
+                .padding(horizontal = 6.dp, vertical = verticalPadding),
         ) {
             val itemWidth = maxWidth / destinations.size
             val selectedIndex = destinations.indexOf(selected).coerceAtLeast(0)
-            val indicatorX by animateDpAsState(
-                targetValue = itemWidth * selectedIndex,
+            val circleX by animateDpAsState(
+                targetValue = itemWidth * selectedIndex + (itemWidth - circleSize) / 2,
                 animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium),
-                label = "navIndicator",
+                label = "navCircle",
             )
-            SelectionBubble(
+            // Raised white circle under the selected icon.
+            Box(
                 Modifier
-                    .offset { IntOffset(indicatorX.roundToPx(), 0) }
-                    .width(itemWidth)
-                    .fillMaxHeight()
-                    .padding(horizontal = lerp(4.dp, 2.dp, progress)),
+                    .offset { IntOffset(circleX.roundToPx(), 0) }
+                    .size(circleSize)
+                    .glassShadow(CircleShape, 8.dp, glass.shadow)
+                    .clip(CircleShape)
+                    .background(glass.navSelectedBackground),
             )
-            Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxSize(), verticalAlignment = Alignment.Top) {
                 destinations.forEach { destination ->
                     NavItem(
                         destination = destination,
                         selected = destination == selected,
                         iconSize = iconSize,
+                        circleSize = circleSize,
                         labelHeight = labelHeight,
                         labelAlpha = labelAlpha,
                         onClick = { onSelect(destination) },
@@ -122,41 +123,18 @@ fun BubbleNavBar(
 }
 
 @Composable
-private fun SelectionBubble(modifier: Modifier) {
-    val glass = LocalGlass.current
-    val primary = MaterialTheme.colorScheme.primary
-    Box(
-        modifier
-            .clip(CircleShape)
-            .background(
-                Brush.verticalGradient(
-                    listOf(primary.copy(alpha = if (glass.isDark) 0.55f else 0.35f), primary.copy(alpha = 0.18f)),
-                ),
-            )
-            .border(
-                1.dp,
-                Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.55f), Color.White.copy(alpha = 0.05f))),
-                CircleShape,
-            ),
-    )
-}
-
-@Composable
 private fun RowScope.NavItem(
     destination: Destination,
     selected: Boolean,
     iconSize: Dp,
+    circleSize: Dp,
     labelHeight: Dp,
     labelAlpha: Float,
     onClick: () -> Unit,
 ) {
     val glass = LocalGlass.current
-    val onBackground = MaterialTheme.colorScheme.onBackground
-    val tint = if (selected) {
-        if (glass.isDark) Color.White else MaterialTheme.colorScheme.primary
-    } else {
-        onBackground.copy(alpha = 0.62f)
-    }
+    val tint = if (selected) glass.navSelectedForeground else glass.navUnselected
+    val labelColor = if (selected) MaterialTheme.colorScheme.onBackground else glass.navUnselected
     val interaction = remember { MutableInteractionSource() }
     val label = stringResource(destination.labelRes)
 
@@ -168,14 +146,16 @@ private fun RowScope.NavItem(
             .clickable(interactionSource = interaction, indication = null, role = Role.Tab, onClick = onClick)
             .testTag("nav_${destination.route}"),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Top,
     ) {
-        Icon(
-            imageVector = destination.icon,
-            contentDescription = label,
-            tint = tint,
-            modifier = Modifier.size(iconSize),
-        )
+        Box(Modifier.size(circleSize), contentAlignment = Alignment.Center) {
+            Icon(
+                imageVector = destination.icon,
+                contentDescription = label,
+                tint = tint,
+                modifier = Modifier.size(iconSize),
+            )
+        }
         Box(
             Modifier
                 .height(labelHeight)
@@ -185,7 +165,7 @@ private fun RowScope.NavItem(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                color = tint,
+                color = labelColor,
                 maxLines = 1,
                 overflow = TextOverflow.Clip,
                 softWrap = false,

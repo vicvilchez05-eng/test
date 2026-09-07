@@ -6,16 +6,17 @@
     <string name="nav_profile">Perfil</string>
 
     <string name="home_title">Inicio</string>
-    <string name="home_subtitle">Tu dinero de un vistazo</string>
     <string name="accounts_title">Cuentas</string>
-    <string name="accounts_subtitle">Tarjetas y bancos vinculados</string>
+    <string name="accounts_subtitle">Cuentas vinculadas</string>
     <string name="balance_title">Balance total</string>
-    <string name="balance_subtitle">Todo lo que tienes, en un número</string>
+    <string name="balance_subtitle">Balance total detallado</string>
     <string name="settings_title">Ajustes</string>
-    <string name="settings_subtitle">Moneda, tema y preferencias</string>
+    <string name="settings_subtitle">Moneda</string>
     <string name="profile_title">Perfil</string>
-    <string name="profile_subtitle">Tú y tus datos</string>
+    <string name="profile_subtitle">Cuenta</string>
 
     <string name="placeholder_phase">Llega en la %1$s</string>
-    <string name="placeholder_hero_label">Provisional</string>
+    <string name="placeholder_trend">+ Tendencia</string>
+    <string name="quick_add">Añadir</string>
+    <string name="quick_actions">Acciones</string>
 </resources>

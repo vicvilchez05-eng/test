@@ -8,16 +8,17 @@
     <string name="nav_profile">Profile</string>
 
     <string name="home_title">Home</string>
-    <string name="home_subtitle">Your money at a glance</string>
     <string name="accounts_title">Accounts</string>
-    <string name="accounts_subtitle">Cards and linked banks</string>
+    <string name="accounts_subtitle">Linked accounts</string>
     <string name="balance_title">Total Balance</string>
-    <string name="balance_subtitle">Everything you own, in one number</string>
+    <string name="balance_subtitle">Detailed total balance</string>
     <string name="settings_title">Settings</string>
-    <string name="settings_subtitle">Currency, theme and preferences</string>
+    <string name="settings_subtitle">Currency</string>
     <string name="profile_title">Profile</string>
-    <string name="profile_subtitle">You and your data</string>
+    <string name="profile_subtitle">Account</string>
 
     <string name="placeholder_phase">Coming in %1$s</string>
-    <string name="placeholder_hero_label">Placeholder</string>
+    <string name="placeholder_trend">+ Trend</string>
+    <string name="quick_add">Add</string>
+    <string name="quick_actions">Actions</string>
 </resources>

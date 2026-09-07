@@ -18,6 +18,10 @@ Android app (Kotlin, Jetpack Compose, Material 3). Single module `:app`, package
 - Always build with the wrapper (`./gradlew`), never the system `gradle`.
 - Filter noise from Gradle output with `grep -v JAVA_TOOL_OPTIONS`.
 
+## Visual reference
+- The look is defined by Vic's guide at `docs/design/guia-visual-vic-2026-09-07.png` (Read it before any UI work) and by HANDOFF.md D-019. Light theme is primary; dark is a translation.
+- Font is Inter (`ui/theme/Type.kt`); text is navy on white frosted cards; screen titles are tracked small caps via `ScreenHeader`; grouped lists use `GlassRowGroup`.
+
 ## Conventions
 - Dependency versions live only in `gradle/libs.versions.toml`.
 - Kotlin 2.4: use `kotlin { compilerOptions { ... } }`, not `kotlinOptions`.

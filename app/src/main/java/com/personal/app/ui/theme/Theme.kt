@@ -8,37 +8,39 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
 
-private val DarkColorScheme = darkColorScheme(
-    primary = AppColors.IndigoLight,
-    onPrimary = AppColors.DarkBase,
-    secondary = AppColors.Teal,
-    onSecondary = AppColors.DarkBase,
-    tertiary = AppColors.Violet,
-    background = AppColors.DarkBase,
-    onBackground = AppColors.DarkText,
-    surface = AppColors.DarkBase,
-    onSurface = AppColors.DarkText,
-    onSurfaceVariant = AppColors.DarkText.copy(alpha = 0.70f),
-    outline = Color.White.copy(alpha = 0.20f),
+private val LightColorScheme = lightColorScheme(
+    primary = AppColors.Blue,
+    onPrimary = Color.White,
+    secondary = AppColors.Green,
+    onSecondary = Color.White,
+    tertiary = AppColors.LilacDeep,
+    background = AppColors.LightBase,
+    onBackground = AppColors.Navy,
+    surface = AppColors.LightBase,
+    onSurface = AppColors.Navy,
+    onSurfaceVariant = AppColors.NavyMuted,
+    outline = AppColors.Navy.copy(alpha = 0.12f),
+    error = AppColors.Red,
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = AppColors.Indigo,
-    onPrimary = Color.White,
-    secondary = Color(0xFF0E9FB5),
+private val DarkColorScheme = darkColorScheme(
+    primary = AppColors.BlueSoft,
+    onPrimary = AppColors.Navy,
+    secondary = AppColors.Green,
     onSecondary = Color.White,
-    tertiary = Color(0xFF8B3FD6),
-    background = AppColors.LightBase,
-    onBackground = AppColors.LightText,
-    surface = AppColors.LightBase,
-    onSurface = AppColors.LightText,
-    onSurfaceVariant = AppColors.LightText.copy(alpha = 0.65f),
-    outline = AppColors.LightText.copy(alpha = 0.15f),
+    tertiary = AppColors.Lilac,
+    background = AppColors.DarkBase,
+    onBackground = AppColors.Snow,
+    surface = AppColors.DarkBase,
+    onSurface = AppColors.Snow,
+    onSurfaceVariant = AppColors.SnowMuted,
+    outline = Color.White.copy(alpha = 0.16f),
+    error = AppColors.Red,
 )
 
 /**
- * App theme. Dynamic (Material You) colour is intentionally off: the glass look depends on the
- * fixed blob palette, and wallpaper-derived colours would clash with it.
+ * App theme. Light is the primary look (the guide is light); dark is a faithful translation.
+ * Dynamic (Material You) colour stays off: the blob palette is the brand.
  */
 @Composable
 fun PersonalAppTheme(
