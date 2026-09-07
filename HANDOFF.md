@@ -56,9 +56,11 @@ terminadas (ver "Compactar" abajo y D-009).
   movimientos con borrado, desvincular banco, borrar todo.
 - **Fase 4 terminada** (S-012): informes semanal/mensual, serie de 6 meses, evolución de 30 días,
   Balance completo, exportación CSV y PDF con hoja de compartir.
-- **Las 4 fases del brief están hechas.** Después (S-013): deslizar entre pestañas con el dedo
-  (D-030) y una pasada de revisión con 4 correcciones. PDF verificado en el móvil por Vic.
-  Proyecto en pausa por decisión de Vic ("mejor lo dejamos así"); rama sin fusionar en `main`.
+- **Las 4 fases del brief están hechas.** Después: deslizar entre pestañas (S-013, D-030),
+  revisión de bugs, y **lectura de notificaciones de BBVA** con buzón de revisión (S-014, D-031).
+- **Pendiente de Vic**: conceder el acceso a notificaciones en el móvil y, cuando llegue un aviso
+  real de BBVA, pegarlo en Ajustes → "Leer notificaciones del banco" → "Pruébalo con un texto"
+  para validar el analizador (los formatos son supuestos). Rama sin fusionar en `main`.
 
 ## Plan por fases (especificación de Vic, 2026-09-07)
 
@@ -105,8 +107,14 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 - [ ] Ideas de continuación (no pedidas): presupuestos por categoría, metas de ahorro,
   recordatorio de registro, keystore propio para actualizar sin desinstalar (D-005),
   icono/splash propios, temas de Esforia.
-- [ ] Notificaciones: el interruptor se guarda pero no hay ninguna notificación implementada
-  (recordatorio de registrar gastos, resumen semanal…). Decidir en una fase futura.
+- [x] El interruptor "Notificaciones" muerto se ha sustituido por la lectura de notificaciones
+  del banco (D-031). Recordatorios/resúmenes push siguen sin existir; decidir en el futuro.
+- [ ] **Validar el analizador BBVA con avisos reales** (Vic no tenía ninguno a mano). Cada
+  formato nuevo se añade como caso en `BankNotificationParserTest`. Si Vic usa otro banco,
+  añadir su paquete a `BankNotificationParser.bankApps`.
+- [ ] OPPO/ColorOS mata servicios en segundo plano con agresividad: si las notificaciones no
+  llegan al buzón, hay que quitar la app de la optimización de batería (Ajustes → Batería →
+  la app → Sin restricciones) y permitir inicio automático.
 - [ ] Multi-moneda: los totales suman céntimos sin convertir. Si Vic mezcla monedas, hará
   falta una tabla de cambio (manual o API).
 - [ ] Vigilar KSP para Kotlin 2.4.x: si aparece, valorar Room (D-025 lo deja preparado).
@@ -246,6 +254,35 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
 - **Actualiza**: D-012 (blobs planos → gotas 3D), D-015 (paleta índigo/violeta/teal/rosa →
   periwinkle/champán/lila), D-018 (iconos Rounded → Outlined). Las tres siguen vigentes en lo
   demás.
+
+### D-031 · 2026-09-08 · Lectura de notificaciones bancarias con buzón de revisión (BBVA)
+- **Decisión**: `BankNotificationListener` (`NotificationListenerService`, permiso
+  `BIND_NOTIFICATION_LISTENER_SERVICE`, el usuario lo concede a mano en "Acceso a
+  notificaciones"). Solo procesa paquetes de `BankNotificationParser.bankApps`
+  (`com.bbva.bbvacontigo`, `com.bbva.netcash`) o que contengan "bbva"; el resto ni se lee.
+  `BankNotificationParser` saca importe (regex de euros con miles/decimales, símbolo antes o
+  después), signo por palabras clave (ingreso/abono/nómina/recibido → ingreso; compra/pago/
+  recibo/retirada → gasto), comercio ("en X", "de X por", "recibo de X") y categoría por
+  diccionario de comercios. Cada aviso entra como `CapturedTransaction` en `FinanceData.inbox`
+  (id SHA-1 de paquete+texto+minuto → sin duplicados; máx. 200) con estado PENDING. El usuario
+  lo revisa en `InboxScreen` (cuenta, signo, importe, categoría, descripción editables) y al
+  guardar se crea una `Transaction` con `Source.CAPTURED` (mueve saldo de cuentas manuales como
+  una manual) o lo descarta. `CaptureSettingsScreen` muestra el estado del permiso (recheck en
+  `ON_RESUME`), botón a los ajustes del sistema, pausa (`UserPreferences.captureEnabled`), apps
+  vigiladas y un **campo de prueba** que interpreta un texto pegado y puede enviarlo al buzón
+  por el mismo camino que una notificación real. La Home muestra una tarjeta "N por revisar".
+- **Por qué**: Vic preguntó por registrar gastos leyendo notificaciones; usa BBVA y no tenía
+  avisos a mano, así que los formatos son supuestos y el campo de prueba es la forma de
+  validarlos sin esperar a que lleguen.
+- **Para qué**: registrar gastos sin teclear, sin que un falso positivo ensucie el libro.
+- **Descartado**: registrar automáticamente sin revisión (falsos positivos y notificaciones
+  informativas sin importe); leer SMS (BBVA ya no manda SMS de compras y el permiso es peor
+  visto); un modelo de lenguaje en el móvil para interpretar (2,5 GB para unas regex).
+- **Privacidad**: el texto de la notificación se guarda en el JSON local como nota del
+  movimiento aceptado; nunca sale del móvil. `UserPreferences.notifications` (muerta) se
+  elimina; `ignoreUnknownKeys` absorbe el campo viejo.
+- **Límites**: el servicio depende de que ColorOS no lo mate (ver Pendientes); los avisos
+  que lleguen con la app "pausada" o sin permiso se pierden (no hay relectura del histórico).
 
 ### D-030 · 2026-09-07 · Las pestañas son un `HorizontalPager`; la barra solo lo refleja
 - **Decisión**: el `NavHost` tiene una única ruta `tabs` que contiene un `HorizontalPager` con
@@ -663,6 +700,26 @@ Balance, Settings, Profile. Se desarrolla **por fases y Vic da feedback entre fa
   de los blobs ajustados en `Glass.kt`. Sin cambios en tarjetas ni barra.
 - **Resultado**: `lintDebug`, `assembleRelease` y 5 tests en verde. 7 capturas enviadas a Vic.
   Commit `0982c65` pusheado a `claude/android-personal-setup-hm95yj`. APK entregado a Vic.
+
+### S-014 · 2026-09-08 · Lectura de notificaciones de BBVA
+- **Petición de Vic**: "¿al final hiciste lo de leer las notificaciones para registrar los
+  gastos?" → no existía. "Uso BBVA, pero ahora mismo no tengo notificaciones".
+- **Hecho** (D-031): modelos `CapturedTransaction`/`CaptureStatus`/`Source.CAPTURED`/`inbox`;
+  `data/capture/BankNotificationParser` y `BankNotificationListener` (+ manifest);
+  repositorio `addCaptured`/`acceptCaptured`/`dismissCaptured`/`pendingCaptures`
+  (`addManualTransaction` acepta `source`); `InboxViewModel`, `CaptureSettingsViewModel`;
+  pantallas `InboxScreen`, `CaptureSettingsScreen`; fila en Ajustes; tarjeta en Home; rutas
+  `inbox` y `settings/capture`; `GroupRow.testTag`. Strings EN/ES.
+- **Tests**: `BankNotificationParserTest` (compra, miles+EUR, Bizum recibido, nómina, recibo,
+  € delante, texto sin importe, ids estables, filtro de paquetes) y regresión en
+  `FinanceRepositoryTest` (deduplicación, aceptar/descartar). Capturas: buzón, buzón
+  expandido, ajustes de captura.
+- **Problemas**: el comercio "MERCADONA S.A." se cortaba en "Mercadona S" (el punto de la
+  abreviatura se tomaba por fin de frase) → un punto solo cierra si le sigue mayúscula, y la
+  limpieza cuenta letras sin puntos; "ANA" se trataba como sigla → lista explícita de
+  acrónimos societarios (SL, SA, SLU…).
+- **Resultado**: 49 tests (1 omitido), lint en verde, release 2,0 MB. APK y capturas enviados.
+  Commit pusheado a `claude/android-personal-setup-hm95yj`.
 
 ### S-013 · 2026-09-07 · Deslizar entre pestañas + revisión de bugs
 - **Petición de Vic**: deslizar con el dedo entre pestañas y "fíjate si hay algún error o bug".

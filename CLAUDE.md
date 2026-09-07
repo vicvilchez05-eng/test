@@ -34,6 +34,7 @@ Android app (Kotlin, Jetpack Compose, Material 3). Single module `:app`, package
 - Banks go through `BankProvider`. `MockBankProvider` is a deterministic local sandbox (seeded per institution and day); `OpenBankingProviderTemplate` documents how a real aggregator plugs in. Record ids for linked data are `"<providerId>:<externalId>"` so re-sync upserts.
 - Forms use `ui/components/Forms.kt`; category/account icons and labels come from `CategoryUi.kt`. Form routes live in `Routes` and hide the bottom bar.
 - Screenshot tests seed an in-memory container with the sandbox bank at a fixed clock.
+- Bank notifications (HANDOFF D-031): `data/capture/BankNotificationListener` (NotificationListenerService, only packages in `BankNotificationParser.bankApps`) → `BankNotificationParser` → `FinanceData.inbox` (`CapturedTransaction`, PENDING/ACCEPTED/DISMISSED) → user accepts in `InboxScreen` → `Transaction` with `Source.CAPTURED`. Formats are assumed BBVA España wording; every real sample Vic provides becomes a case in `BankNotificationParserTest`. The "try it with a text" box in `CaptureSettingsScreen` runs the same path as a real notification.
 - Reports are pure functions in `domain/Reports.kt` (week = Monday–Sunday, month, 6-month series); the Balance screen and the PDF both read them. Exports live in `data/export/ExportManager.kt` (CSV + `PdfDocument` PDF, `cacheDir/exports`, shared via FileProvider). `PdfDocument` does not run in Robolectric: the PDF test is skipped with `Assume`; verify PDF changes on a device.
 
 ## Conventions

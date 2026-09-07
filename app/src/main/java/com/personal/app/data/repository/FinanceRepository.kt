@@ -5,6 +5,8 @@ import com.personal.app.data.bank.BankProviderException
 import com.personal.app.data.model.Account
 import com.personal.app.data.model.AccountType
 import com.personal.app.data.model.BankConnection
+import com.personal.app.data.model.CaptureStatus
+import com.personal.app.data.model.CapturedTransaction
 import com.personal.app.data.model.Category
 import com.personal.app.data.model.FinanceData
 import com.personal.app.data.model.Source
@@ -68,11 +70,13 @@ class FinanceRepository(
         description: String,
         timestamp: Long = clock(),
         note: String? = null,
+        source: Source = Source.MANUAL,
     ): Transaction {
         require(amountMinor != 0L) { "Amount must not be zero" }
+        require(source != Source.LINKED) { "Linked transactions come from sync" }
         val tx = Transaction(
             id = newId(), accountId = accountId, amountMinor = amountMinor, category = category,
-            description = description.trim(), timestamp = timestamp, source = Source.MANUAL, note = note?.takeIf { it.isNotBlank() },
+            description = description.trim(), timestamp = timestamp, source = source, note = note?.takeIf { it.isNotBlank() },
         )
         store.update { d ->
             val accounts = d.accounts.map { a ->
@@ -87,7 +91,7 @@ class FinanceRepository(
         store.update { d ->
             val tx = d.transactions.firstOrNull { it.id == id } ?: return@update d
             val accounts = d.accounts.map { a ->
-                if (a.id == tx.accountId && a.source == Source.MANUAL && tx.source == Source.MANUAL) a.copy(balanceMinor = a.balanceMinor - tx.amountMinor) else a
+                if (a.id == tx.accountId && a.source == Source.MANUAL && tx.source != Source.LINKED) a.copy(balanceMinor = a.balanceMinor - tx.amountMinor) else a
             }
             d.copy(accounts = accounts, transactions = d.transactions.filterNot { it.id == id })
         }
@@ -98,6 +102,31 @@ class FinanceRepository(
         val account = data.value.accounts.firstOrNull { it.id == id } ?: return
         require(account.source == Source.MANUAL) { "Linked accounts are removed by unlinking their bank" }
         store.update { d -> d.copy(accounts = d.accounts.filterNot { it.id == id }, transactions = d.transactions.filterNot { it.accountId == id }) }
+    }
+
+    // ---- Captured notifications (inbox) ----
+
+    val pendingCaptures: Flow<List<CapturedTransaction>> =
+        store.data.map { d -> d.inbox.filter { it.status == CaptureStatus.PENDING }.sortedByDescending { it.postedAt } }
+
+    /** Adds a capture unless the same id is already known. The inbox keeps at most 200 items. */
+    suspend fun addCaptured(c: CapturedTransaction) {
+        store.update { d ->
+            if (d.inbox.any { it.id == c.id }) d
+            else d.copy(inbox = (d.inbox + c).sortedByDescending { it.postedAt }.take(200))
+        }
+    }
+
+    /** Turns a capture into a real movement on [accountId] and marks it accepted. */
+    suspend fun acceptCaptured(id: String, accountId: String, amountMinor: Long, category: Category, description: String): Transaction {
+        val c = data.value.inbox.firstOrNull { it.id == id } ?: throw IllegalArgumentException("Unknown capture $id")
+        val tx = addManualTransaction(accountId, amountMinor, category, description, timestamp = c.postedAt, note = c.text, source = Source.CAPTURED)
+        store.update { d -> d.copy(inbox = d.inbox.map { if (it.id == id) it.copy(status = CaptureStatus.ACCEPTED) else it }) }
+        return tx
+    }
+
+    suspend fun dismissCaptured(id: String) {
+        store.update { d -> d.copy(inbox = d.inbox.map { if (it.id == id) it.copy(status = CaptureStatus.DISMISSED) else it }) }
     }
 
     /** Deletes every account, transaction and connection. Preferences are untouched. */

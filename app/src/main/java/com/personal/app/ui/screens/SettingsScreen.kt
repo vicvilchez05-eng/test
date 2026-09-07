@@ -40,7 +40,7 @@ import com.personal.app.ui.viewmodel.SettingsViewModel
 import com.personal.app.ui.viewmodel.appViewModel
 
 @Composable
-fun SettingsScreen(onCurrency: () -> Unit, onAccounts: () -> Unit, onExport: () -> Unit) {
+fun SettingsScreen(onCurrency: () -> Unit, onAccounts: () -> Unit, onExport: () -> Unit, onCapture: () -> Unit) {
     val vm = appViewModel { SettingsViewModel(it.preferences, it.repository) }
     val prefs by vm.state.collectAsStateWithLifecycle()
     val p = LocalPalette.current
@@ -56,7 +56,7 @@ fun SettingsScreen(onCurrency: () -> Unit, onAccounts: () -> Unit, onExport: () 
             Group(
                 listOf(
                     GroupRow(stringResource(R.string.row_currency), Icons.Outlined.Paid, prefs.currency, onClick = onCurrency),
-                    GroupRow(stringResource(R.string.row_notifications), Icons.Outlined.NotificationsNone, trailing = { EsforiaSwitch(checked = prefs.notifications, onChange = vm::setNotifications) }),
+                    GroupRow(stringResource(R.string.capture_title), Icons.Outlined.NotificationsNone, onClick = onCapture, testTag = "settings_capture"),
                     GroupRow(stringResource(R.string.row_privacy_mode), Icons.Outlined.VisibilityOff, trailing = { EsforiaSwitch(checked = prefs.privacyMode, onChange = vm::setPrivacy) }),
                 ),
             )

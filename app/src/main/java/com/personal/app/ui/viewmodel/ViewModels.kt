@@ -48,6 +48,7 @@ inline fun <reified VM : ViewModel> appViewModel(crossinline create: (AppContain
 data class HomeUiState(
     val userName: String = "",
     val todayMillis: Long = 0,
+    val pendingCaptures: Int = 0,
     val accounts: List<Account> = emptyList(),
     val totalMinor: Long = 0,
     val monthOverMonthPercent: Double? = null,
@@ -62,6 +63,7 @@ class HomeViewModel(private val repo: FinanceRepository, private val prefs: Pref
         HomeUiState(
             userName = p.name,
             todayMillis = repo.clock(),
+            pendingCaptures = d.inbox.count { it.status == com.personal.app.data.model.CaptureStatus.PENDING },
             accounts = d.accounts.sortedBy { it.createdAt },
             totalMinor = FinanceCalculator.totalBalance(d.accounts),
             monthOverMonthPercent = FinanceCalculator.monthOverMonthPercent(d.accounts, d.transactions, month),
@@ -242,7 +244,7 @@ class SettingsViewModel(private val prefs: PreferencesRepository, private val re
     fun setCurrency(code: String) = viewModelScope.launch { prefs.setCurrency(code) }
     fun setThemeMode(mode: ThemeMode) = viewModelScope.launch { prefs.setThemeMode(mode) }
     fun setPrivacy(on: Boolean) = viewModelScope.launch { prefs.setPrivacyMode(on) }
-    fun setNotifications(on: Boolean) = viewModelScope.launch { prefs.setNotifications(on) }
+    fun setCaptureEnabled(on: Boolean) = viewModelScope.launch { prefs.setCaptureEnabled(on) }
     fun wipeAll() = viewModelScope.launch { repo.wipeAll() }
 }
 
@@ -405,5 +407,58 @@ class BalanceViewModel(
                 .onFailure { exportError.value = it.message ?: it.javaClass.simpleName }
             exporting.value = false
         }
+    }
+}
+
+// ---- Bank notification inbox ----
+
+data class InboxUiState(
+    val items: List<com.personal.app.data.model.CapturedTransaction> = emptyList(),
+    val accounts: List<Account> = emptyList(),
+)
+
+class InboxViewModel(private val repo: FinanceRepository) : ViewModel() {
+    val state: StateFlow<InboxUiState> = combine(repo.pendingCaptures, repo.accounts) { items, accounts ->
+        InboxUiState(items = items, accounts = accounts)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), InboxUiState())
+
+    fun accept(id: String, accountId: String, amountMinor: Long, category: Category, description: String) =
+        viewModelScope.launch { runCatching { repo.acceptCaptured(id, accountId, amountMinor, category, description) } }
+
+    fun dismiss(id: String) = viewModelScope.launch { repo.dismissCaptured(id) }
+}
+
+// ---- Capture settings ----
+
+data class CaptureSettingsState(
+    val enabled: Boolean = true,
+    val pending: Int = 0,
+    val sampleText: String = "",
+    val sampleParsed: com.personal.app.data.capture.ParsedNotification? = null,
+    val sampleAdded: Boolean = false,
+)
+
+class CaptureSettingsViewModel(private val prefs: PreferencesRepository, private val repo: FinanceRepository) : ViewModel() {
+    private val sample = MutableStateFlow("")
+    private val added = MutableStateFlow(false)
+    val state: StateFlow<CaptureSettingsState> = combine(prefs.prefs, repo.pendingCaptures, sample, added) { p, pending, text, wasAdded ->
+        CaptureSettingsState(
+            enabled = p.captureEnabled,
+            pending = pending.size,
+            sampleText = text,
+            sampleParsed = if (text.isBlank()) null else com.personal.app.data.capture.BankNotificationParser.parse("BBVA", text),
+            sampleAdded = wasAdded,
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), CaptureSettingsState())
+
+    fun setEnabled(on: Boolean) = viewModelScope.launch { prefs.setCaptureEnabled(on) }
+    fun setSample(text: String) { sample.value = text; added.value = false }
+
+    /** Pushes the pasted text through the same path a real notification takes. */
+    fun addSampleToInbox() = viewModelScope.launch {
+        val text = sample.value.trim()
+        if (text.isEmpty()) return@launch
+        repo.addCaptured(com.personal.app.data.capture.BankNotificationListener.build("com.bbva.bbvacontigo", "BBVA", text, repo.clock()))
+        added.value = true
     }
 }

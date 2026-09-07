@@ -19,7 +19,9 @@ import com.personal.app.ui.screens.AccountDetailScreen
 import com.personal.app.ui.screens.AccountsScreen
 import com.personal.app.ui.screens.AddAccountScreen
 import com.personal.app.ui.screens.AddTransactionScreen
+import com.personal.app.ui.screens.CaptureSettingsScreen
 import com.personal.app.ui.screens.CurrencyScreen
+import com.personal.app.ui.screens.InboxScreen
 import com.personal.app.ui.screens.HomeScreen
 import com.personal.app.ui.screens.LinkBankScreen
 import com.personal.app.ui.screens.ProfileScreen
@@ -39,6 +41,8 @@ object Routes {
     const val ADD_ACCOUNT = "add_account"
     const val LINK_BANK = "link_bank"
     const val CURRENCY = "settings/currency"
+    const val CAPTURE = "settings/capture"
+    const val INBOX = "inbox"
     const val TRANSACTIONS = "transactions?accountId={accountId}"
     const val ACCOUNT = "account/{id}"
     fun transactions(accountId: String? = null) = if (accountId == null) "transactions" else "transactions?accountId=$accountId"
@@ -80,6 +84,12 @@ fun AppNavHost(
         composable(Routes.CURRENCY, enterTransition = { slideIn }, popExitTransition = { slideOut }) {
             CurrencyScreen(onDone = back)
         }
+        composable(Routes.CAPTURE, enterTransition = { slideIn }, popExitTransition = { slideOut }) {
+            CaptureSettingsScreen(onDone = back, onInbox = { navController.navigate(Routes.INBOX) })
+        }
+        composable(Routes.INBOX, enterTransition = { slideIn }, popExitTransition = { slideOut }) {
+            InboxScreen(onDone = back, onAddAccount = { navController.navigate(Routes.ADD_ACCOUNT) })
+        }
         composable(
             Routes.TRANSACTIONS,
             arguments = listOf(navArgument("accountId") { type = NavType.StringType; nullable = true; defaultValue = null }),
@@ -114,6 +124,7 @@ private fun TabsPager(pagerState: PagerState, navController: NavHostController, 
                 onAddAccount = { navController.navigate(Routes.ADD_ACCOUNT) },
                 onAccount = { navController.navigate(Routes.account(it)) },
                 onAllTransactions = { navController.navigate(Routes.transactions()) },
+                onInbox = { navController.navigate(Routes.INBOX) },
             )
             Destination.Accounts -> AccountsScreen(
                 onLinkBank = { navController.navigate(Routes.LINK_BANK) },
@@ -125,6 +136,7 @@ private fun TabsPager(pagerState: PagerState, navController: NavHostController, 
                 onCurrency = { navController.navigate(Routes.CURRENCY) },
                 onAccounts = { onTab(Destination.Accounts) },
                 onExport = { onTab(Destination.Balance) },
+                onCapture = { navController.navigate(Routes.CAPTURE) },
             )
             Destination.Profile -> ProfileScreen(onLinkBank = { navController.navigate(Routes.LINK_BANK) })
         }

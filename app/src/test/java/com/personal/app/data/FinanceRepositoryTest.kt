@@ -97,4 +97,19 @@ class FinanceRepositoryTest {
         assertTrue(r.data.value.transactions.none { it.id == "mock:ghost" })
         assertEquals(seeded.transactions.size, r.data.value.transactions.size)
     }
+
+    @Test
+    fun captures_are_deduplicated_and_accepting_creates_a_captured_transaction() = runTest {
+        val r = repo()
+        val cash = r.addManualAccount("Efectivo", AccountType.CASH, 100_00)
+        val c = com.personal.app.data.capture.BankNotificationListener.build("com.bbva.bbvacontigo", "BBVA", "Compra de 12,50 € en MERCADONA", now)
+        r.addCaptured(c); r.addCaptured(c)
+        assertEquals(1, r.data.value.inbox.size)
+        val tx = r.acceptCaptured(c.id, cash.id, -12_50, Category.FOOD, "Mercadona")
+        assertEquals(Source.CAPTURED, tx.source)
+        assertEquals(87_50L, r.data.value.accounts.first().balanceMinor)
+        assertEquals(com.personal.app.data.model.CaptureStatus.ACCEPTED, r.data.value.inbox.first().status)
+        r.dismissCaptured(c.id)
+        assertEquals(com.personal.app.data.model.CaptureStatus.DISMISSED, r.data.value.inbox.first().status)
+    }
 }

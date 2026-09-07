@@ -18,6 +18,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Inbox
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.material.icons.outlined.NorthEast
 import androidx.compose.material.icons.outlined.SouthEast
 import androidx.compose.material3.Icon
@@ -76,6 +78,7 @@ fun HomeScreen(
     onAddAccount: () -> Unit,
     onAccount: (String) -> Unit,
     onAllTransactions: () -> Unit,
+    onInbox: () -> Unit = {},
 ) {
     val vm = appViewModel { HomeViewModel(it.repository, it.preferences) }
     val s by vm.state.collectAsStateWithLifecycle()
@@ -132,6 +135,24 @@ fun HomeScreen(
                 }
             }
             Spacer(Modifier.height(14.dp))
+        }
+        if (s.pendingCaptures > 0) {
+            item {
+                SurfaceCard(Modifier.fillMaxWidth().testTag("home_inbox"), onClick = onInbox) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(36.dp).clip(RoundedCornerShape(11.dp)).background(p.mossSoft), contentAlignment = Alignment.Center) {
+                            Icon(Icons.Outlined.Inbox, contentDescription = null, tint = p.mossText, modifier = Modifier.size(18.dp))
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column(Modifier.weight(1f)) {
+                            Text(pluralStringResource(R.plurals.inbox_pending, s.pendingCaptures, s.pendingCaptures), style = MaterialTheme.typography.titleMedium, color = p.ink)
+                            Text(stringResource(R.string.inbox_home_hint), style = MaterialTheme.typography.bodySmall, color = p.inkSoft)
+                        }
+                        Chip(stringResource(R.string.review))
+                    }
+                }
+                Spacer(Modifier.height(14.dp))
+            }
         }
         if (!s.hasData) {
             item {

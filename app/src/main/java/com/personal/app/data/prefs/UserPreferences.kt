@@ -16,7 +16,8 @@ data class UserPreferences(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     /** Hide every amount behind dots (Esforia's eye toggle). */
     val privacyMode: Boolean = false,
-    val notifications: Boolean = true,
+    /** Pause the bank-notification listener without revoking the system permission. */
+    val captureEnabled: Boolean = true,
 )
 
 /** Currencies offered in Settings: code → shown with its symbol by java.util.Currency. */
@@ -29,5 +30,5 @@ class PreferencesRepository(private val store: Store<UserPreferences>) {
     suspend fun setCurrency(code: String) = update { it.copy(currency = code) }
     suspend fun setThemeMode(mode: ThemeMode) = update { it.copy(themeMode = mode) }
     suspend fun setPrivacyMode(on: Boolean) = update { it.copy(privacyMode = on) }
-    suspend fun setNotifications(on: Boolean) = update { it.copy(notifications = on) }
+    suspend fun setCaptureEnabled(on: Boolean) = update { it.copy(captureEnabled = on) }
 }

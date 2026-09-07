@@ -37,7 +37,6 @@
 
     <string name="row_linked_banks">Bancos vinculados</string>
     <string name="row_currency">Moneda</string>
-    <string name="row_notifications">Notificaciones</string>
     <string name="row_bank_apis">Gestionar APIs bancarias</string>
     <string name="row_reports">Informes</string>
     <string name="row_about">Acerca de</string>
@@ -175,4 +174,31 @@
     <string name="report_categories_month">Gastos por categoría este mes</string>
     <string name="report_transactions_month">Movimientos de este mes (%1$d)</string>
     <string name="report_amount">Importe</string>
+    <string name="capture_title">Leer notificaciones del banco</string>
+    <string name="capture_intro">Cuando la app de tu banco muestra un aviso como "Compra de 12,50 € en MERCADONA", la app lo lee, saca importe, comercio y una categoría probable, y lo deja en un buzón. No se registra nada hasta que tú lo revisas. Solo se leen las apps de banco de la lista; el texto nunca sale del móvil.</string>
+    <string name="capture_access_granted">Acceso a notificaciones concedido</string>
+    <string name="capture_access_missing">Sin acceso a notificaciones</string>
+    <string name="capture_grant">Conceder acceso a notificaciones</string>
+    <string name="capture_manage_access">Gestionar acceso en ajustes del sistema</string>
+    <string name="capture_enabled">Captura activada</string>
+    <string name="capture_watched_apps">Apps que se leen</string>
+    <string name="capture_try_title">Pruébalo con un texto</string>
+    <string name="capture_try_body">Pega el texto de una notificación real del banco para ver cómo se interpreta, y envíala al buzón para probar el flujo completo.</string>
+    <string name="capture_try_hint">Compra de 12,50 € en MERCADONA con tarjeta *1234</string>
+    <string name="capture_try_result">Se interpreta como</string>
+    <string name="capture_try_no_amount">No se encuentra ningún importe en ese texto.</string>
+    <string name="capture_try_add">Enviar al buzón</string>
+    <string name="capture_try_added">Enviado al buzón ✓</string>
+    <string name="inbox_title">Por revisar</string>
+    <string name="inbox_empty">Nada que revisar. Las nuevas notificaciones del banco aparecerán aquí.</string>
+    <string name="inbox_unparsed">Importe no leído</string>
+    <string name="inbox_pending_n">%1$d por revisar</string>
+    <string name="inbox_home_hint">Notificaciones del banco esperando tu visto bueno</string>
+    <string name="review">Revisar</string>
+    <string name="discard">Descartar</string>
+    <plurals name="inbox_pending">
+        <item quantity="one">%1$d movimiento por revisar</item>
+        <item quantity="many">%1$d movimientos por revisar</item>
+        <item quantity="other">%1$d movimientos por revisar</item>
+    </plurals>
 </resources>

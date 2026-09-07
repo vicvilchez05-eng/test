@@ -47,6 +47,9 @@ class ScreenshotTest {
             container.repository.linkBank("mock", "demo")
             val cash = container.repository.addManualAccount("Efectivo", AccountType.CASH, 120_00)
             container.repository.addManualTransaction(cash.id, -12_50, Category.FOOD, "Bocadillo", timestamp = now - 3600_000L)
+            container.repository.addCaptured(
+                com.personal.app.data.capture.BankNotificationListener.build("com.bbva.bbvacontigo", "BBVA", "Compra de 23,40 € en MERCADONA S.A. con tu tarjeta *1234", now - 1800_000L),
+            )
         }
         return container
     }
@@ -151,6 +154,23 @@ class ScreenshotTest {
         compose.onRoot().performTouchInput { swipeLeft() }
         compose.waitForIdle()
         compose.onRoot().captureRoboImage("screenshots/swipe_to_accounts_light.png")
+    }
+
+    @Test
+    fun inbox_and_capture_settings_light() {
+        setApp(dark = false)
+        compose.onNodeWithTag("home_inbox").performClick(); compose.waitForIdle()
+        compose.onRoot().captureRoboImage("screenshots/inbox_light.png")
+        compose.onNodeWithTag("inbox_item_0").performClick(); compose.waitForIdle()
+        compose.onRoot().captureRoboImage("screenshots/inbox_expanded_light.png")
+    }
+
+    @Test
+    fun capture_settings_light() {
+        setApp(dark = false)
+        compose.onNodeWithTag("nav_settings").performClick(); compose.waitForIdle()
+        compose.onNodeWithTag("settings_capture").performClick(); compose.waitForIdle()
+        compose.onRoot().captureRoboImage("screenshots/capture_settings_light.png")
     }
 
     @Test

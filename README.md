@@ -40,6 +40,7 @@ app/src/main/java/com/personal/app/
   domain/FinanceCalculator.kt         totales, mes, gasto por categoria, historico de saldo
   domain/Reports.kt                   resumen semanal/mensual y serie de meses
   data/export/ExportManager.kt        CSV y PDF (PdfDocument) compartidos via FileProvider
+  data/capture/                       lector de notificaciones del banco (BBVA) + analizador
   ui/viewmodel/                       ViewModels finos
   FinanceApp.kt                       raiz de la UI: fondo -> pantalla -> barra
   ui/theme/                           Palette (tokens Esforia), Type (Sora/Manrope/Plex Mono), Theme

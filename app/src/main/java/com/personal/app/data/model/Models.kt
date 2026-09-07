@@ -11,9 +11,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class AccountType { CHECKING, SAVINGS, CREDIT, CASH, INVESTMENT }
 
-/** Where a record came from: a bank connection or the user's own hand. */
+/** Where a record came from: a bank connection, the user's own hand, or a bank notification the user accepted. */
 @Serializable
-enum class Source { LINKED, MANUAL }
+enum class Source { LINKED, MANUAL, CAPTURED }
 
 @Serializable
 data class Account(
@@ -68,6 +68,27 @@ data class BankConnection(
     val lastSyncAt: Long? = null,
 )
 
+@Serializable
+enum class CaptureStatus { PENDING, ACCEPTED, DISMISSED }
+
+/**
+ * A bank notification the listener picked up, with what the parser made of it. Sits in the
+ * inbox until the user accepts it (becomes a [Transaction] with [Source.CAPTURED]) or dismisses it.
+ */
+@Serializable
+data class CapturedTransaction(
+    val id: String,
+    val packageName: String,
+    val title: String,
+    val text: String,
+    val postedAt: Long,
+    /** Signed minor units if the parser found an amount; null means "could not read it". */
+    val amountMinor: Long? = null,
+    val merchant: String? = null,
+    val suggestedCategory: Category? = null,
+    val status: CaptureStatus = CaptureStatus.PENDING,
+)
+
 /** The whole dataset, as persisted. [version] is for future migrations. */
 @Serializable
 data class FinanceData(
@@ -75,4 +96,5 @@ data class FinanceData(
     val accounts: List<Account> = emptyList(),
     val transactions: List<Transaction> = emptyList(),
     val connections: List<BankConnection> = emptyList(),
+    val inbox: List<CapturedTransaction> = emptyList(),
 )

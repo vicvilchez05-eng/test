@@ -39,7 +39,6 @@
 
     <string name="row_linked_banks">Linked banks</string>
     <string name="row_currency">Currency</string>
-    <string name="row_notifications">Notifications</string>
     <string name="row_bank_apis">Manage bank APIs</string>
     <string name="row_reports">Reports</string>
     <string name="row_about">About</string>
@@ -174,4 +173,31 @@
     <string name="report_categories_month">Expenses by category this month</string>
     <string name="report_transactions_month">Movements this month (%1$d)</string>
     <string name="report_amount">Amount</string>
+    <string name="capture_service_label" translatable="false">PersonalApp · bank notifications</string>
+    <string name="capture_title">Read bank notifications</string>
+    <string name="capture_intro">When your bank app posts a notification such as "Purchase of €12.50 at MERCADONA", the app reads it, extracts amount, merchant and a category guess, and drops it into an inbox. Nothing is recorded until you review it. Only the bank apps listed below are read; the text never leaves the phone.</string>
+    <string name="capture_access_granted">Notification access granted</string>
+    <string name="capture_access_missing">Notification access not granted</string>
+    <string name="capture_grant">Grant notification access</string>
+    <string name="capture_manage_access">Manage access in system settings</string>
+    <string name="capture_enabled">Capture enabled</string>
+    <string name="capture_watched_apps">Apps being read</string>
+    <string name="capture_try_title">Try it with a text</string>
+    <string name="capture_try_body">Paste the text of a real bank notification to see how it is read, and send it to the inbox to test the whole flow.</string>
+    <string name="capture_try_hint">Purchase of €12.50 at MERCADONA with card *1234</string>
+    <string name="capture_try_result">Read as</string>
+    <string name="capture_try_no_amount">No amount found in that text.</string>
+    <string name="capture_try_add">Send to inbox</string>
+    <string name="capture_try_added">Sent to inbox ✓</string>
+    <string name="inbox_title">To review</string>
+    <string name="inbox_empty">Nothing to review. New bank notifications will appear here.</string>
+    <string name="inbox_unparsed">Amount not read</string>
+    <string name="inbox_pending_n">%1$d to review</string>
+    <string name="inbox_home_hint">Bank notifications waiting for your OK</string>
+    <string name="review">Review</string>
+    <string name="discard">Discard</string>
+    <plurals name="inbox_pending">
+        <item quantity="one">%1$d movement to review</item>
+        <item quantity="other">%1$d movements to review</item>
+    </plurals>
 </resources>

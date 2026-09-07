@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -135,6 +136,7 @@ data class GroupRow(
     val danger: Boolean = false,
     val trailing: (@Composable () -> Unit)? = null,
     val onClick: (() -> Unit)? = null,
+    val testTag: String? = null,
 )
 
 /** `Group` + `Row` + `Divider`: surface, line, radius 16; rows ≥ 50 tall, icon tile 28 / radius 9 / mossSoft. */
@@ -164,6 +166,7 @@ private fun GroupRowItem(row: GroupRow) {
     Row(
         Modifier
             .fillMaxWidth()
+            .then(if (row.testTag != null) Modifier.testTag(row.testTag) else Modifier)
             .then(if (row.onClick != null) Modifier.pressable(row.onClick) else Modifier)
             .heightIn(min = 50.dp)
             .padding(horizontal = 14.dp, vertical = 12.dp),
