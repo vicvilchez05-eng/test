@@ -18,14 +18,18 @@ Las decisiones de diseño y su motivación están en [handoff.md](handoff.md).
 
 ## Ejecutar en el navegador (desarrollo)
 
-```bash
-cd defense-zone/game
-python3 -m http.server 8123
-# abre http://localhost:8123/ en Chrome/Edge (apaisado)
-```
+Abre `game/index.html` en Chrome/Edge (funciona también desde `file://`).
+Con `Esc` se pausa; `window.__dz` expone el estado para depurar.
 
-Hace falta un servidor (no `file://`) porque usa módulos ES. Con `Esc` se
-pausa; `window.__dz` expone el estado para depurar.
+El código fuente está en `game/js/` (módulos ES) y se empaqueta en
+`game/dist/app.js`, que es lo que carga `index.html`. **Después de editar
+`game/js` hay que regenerar el bundle:**
+
+```bash
+cd defense-zone/tools
+npm install            # sólo la primera vez (esbuild)
+npm run build          # o `npm run watch` para regenerar al guardar
+```
 
 ## Compilar el APK
 
@@ -38,7 +42,9 @@ cd defense-zone/android
 ```
 
 O abre la carpeta `android/` en Android Studio y ejecuta. El juego (`../game`)
-se empaqueta automáticamente como assets del APK; no hay que copiar nada.
+se empaqueta automáticamente como assets del APK; no hay que copiar nada. Si
+Gradle encuentra Node y esbuild instalados en `tools/`, regenera el bundle
+antes de compilar; si no, usa el `dist/app.js` versionado.
 
 ## Balance
 

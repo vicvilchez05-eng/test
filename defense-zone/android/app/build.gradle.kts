@@ -39,5 +39,18 @@ android {
 
 dependencies {
     implementation("androidx.activity:activity-ktx:1.9.3")
-    implementation("androidx.webkit:webkit:1.12.1")
+    implementation("androidx.core:core-ktx:1.13.1")
 }
+
+// Regenera game/dist/app.js a partir de game/js antes de compilar, si hay Node
+// disponible. Si no lo hay, se usa el bundle ya presente en el repositorio.
+val bundleGame by tasks.registering(Exec::class) {
+    val toolsDir = rootProject.file("../tools")
+    val nodeAvailable = try {
+        ProcessBuilder("node", "--version").start().waitFor() == 0
+    } catch (e: Exception) { false }
+    onlyIf { nodeAvailable && toolsDir.resolve("node_modules/esbuild").exists() }
+    workingDir = toolsDir
+    commandLine("node", "build.mjs")
+}
+tasks.named("preBuild") { dependsOn(bundleGame) }

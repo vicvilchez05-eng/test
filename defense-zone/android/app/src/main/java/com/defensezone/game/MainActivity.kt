@@ -3,23 +3,23 @@ package com.defensezone.game
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
-import android.view.View
 import android.view.WindowManager
-import android.webkit.WebResourceRequest
-import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.webkit.WebViewAssetLoader
-import androidx.webkit.WebViewClientCompat
 
 /**
  * Actividad única: un WebView a pantalla completa que carga el juego HTML5
  * empaquetado en assets. Ver ../../handoff.md para el porqué de este enfoque.
+ *
+ * El juego se carga desde file:///android_asset/ y su JavaScript va en un
+ * único script clásico (game/dist/app.js), de modo que no depende de
+ * intercepción de peticiones, DNS ni módulos ES.
  */
 class MainActivity : ComponentActivity() {
 
@@ -37,23 +37,16 @@ class MainActivity : ComponentActivity() {
                 javaScriptEnabled = true
                 domStorageEnabled = true                 // localStorage para los ajustes
                 mediaPlaybackRequiresUserGesture = false // permite música tras el primer toque
-                allowFileAccess = false
+                allowFileAccess = true                   // necesario para file:///android_asset en API 30+
                 allowContentAccess = false
-                cacheMode = WebSettings.LOAD_DEFAULT
+                cacheMode = WebSettings.LOAD_NO_CACHE
                 useWideViewPort = true
                 loadWithOverviewMode = true
                 textZoom = 100                           // ignora el tamaño de fuente del sistema
             }
-            // Sirve los assets bajo un origen https "virtual" (necesario para módulos ES y localStorage).
-            val assetLoader = WebViewAssetLoader.Builder()
-                .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this@MainActivity))
-                .build()
-            webViewClient = object : WebViewClientCompat() {
-                override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
-                    assetLoader.shouldInterceptRequest(request.url)
-            }
+            webViewClient = WebViewClient()
             addJavascriptInterface(AndroidBridge(this@MainActivity), "Android")
-            loadUrl("https://appassets.androidapp.com/assets/index.html")
+            loadUrl("file:///android_asset/index.html")
         }
         setContentView(webView)
 

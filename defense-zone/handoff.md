@@ -39,6 +39,7 @@ y bucle con paso fijo. Requiere WebView ≥ 99 para `roundRect` (hay polyfill en
 defense-zone/
 ├── game/                 Juego HTML5 (se empaqueta tal cual como assets del APK)
 │   ├── index.html        Pantallas (menú, ajustes, HUD, pausa, fin)
+│   ├── dist/app.js       Bundle generado (no editar; `node tools/build.mjs`)
 │   ├── css/style.css
 │   └── js/
 │       ├── config.js     TODOS los números de balance y ajustes por defecto
@@ -49,7 +50,7 @@ defense-zone/
 │       ├── ui/           hud.js (cartas/maná/reloj), screens.js (menús)
 │       ├── storage.js    Ajustes en localStorage
 │       └── platform.js   Puente con Android (salir, vibración)
-├── tools/simulate.mjs    Simulación IA vs IA sin pantalla para balance
+├── tools/                build.mjs (esbuild → dist/app.js), simulate.mjs (balance)
 ├── android/              Proyecto Android Studio (Kotlin, AGP 8.7.3, Gradle 8.10.2)
 ├── docs/                 Capturas de referencia
 ├── README.md             Cómo ejecutar / compilar
@@ -152,15 +153,25 @@ reales resultan largas/cortas, los mandos principales son `HERO.speed`,
 - `MainActivity` (ComponentActivity) con `WebView`: JavaScript, DOM storage,
   audio sin gesto adicional, orientación `sensorLandscape`, pantalla completa
   inmersiva, pantalla siempre encendida, `windowLayoutInDisplayCutoutMode=shortEdges`.
-- Se sirve con `WebViewAssetLoader` en `https://appassets.androidapp.com/assets/`
-  (no `file://`) porque los módulos ES y `localStorage` necesitan un origen https.
+- Se carga `file:///android_asset/index.html`. El JavaScript se empaqueta en un
+  único script clásico `game/dist/app.js` con esbuild (`node tools/build.mjs`),
+  así no hay módulos ES (que fallan por CORS en `file://`) ni intercepción de
+  peticiones. **Historial:** la primera versión usaba `WebViewAssetLoader` con
+  la URL virtual `https://appassets.androidapp.com/`; en el móvil del usuario
+  dio `ERR_CACHE_MISS` (faltaba el permiso `INTERNET`) y después
+  `ERR_NAME_NOT_RESOLVED`: el WebView de ese dispositivo no llamaba al
+  interceptor y salía a la red. Se descartó ese mecanismo por no poder
+  depurarlo sin dispositivo.
+- El build de Gradle regenera el bundle antes de compilar si encuentra `node`
+  y `tools/node_modules/esbuild`; si no, usa el `dist/app.js` del repositorio
+  (por eso está versionado). **Tras editar `game/js`, ejecuta
+  `node tools/build.mjs`** (o `npm run watch` en `tools/`).
 - Botón atrás → evento JS `androidback` (pausa / cerrar ajustes / volver / salir).
   `onPause` → evento `androidpause` (pausa la partida).
 - `AndroidBridge.exitApp()` expuesto como `window.Android`.
 - minSdk 26 (permite icono adaptativo vectorial sin PNGs), targetSdk 35.
-- Permiso `INTERNET` declarado aunque el juego no use red: sin él el WebView
-  no procesa la URL `https://` virtual de los assets y muestra `ERR_CACHE_MISS`
-  (ocurrió en la primera prueba en dispositivo).
+- Permiso `INTERNET` declarado por si se vuelve a un esquema `https://`; con
+  `file://` no es imprescindible.
 - Comprobado: `./gradlew assembleDebug` compila en este entorno (SDK 35,
   build-tools 35). **No se ha probado en un dispositivo ni emulador real**:
   el comportamiento del WebView (rendimiento, audio, barras del sistema) debe
