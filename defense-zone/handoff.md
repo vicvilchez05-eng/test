@@ -158,6 +158,9 @@ reales resultan largas/cortas, los mandos principales son `HERO.speed`,
   `onPause` → evento `androidpause` (pausa la partida).
 - `AndroidBridge.exitApp()` expuesto como `window.Android`.
 - minSdk 26 (permite icono adaptativo vectorial sin PNGs), targetSdk 35.
+- Permiso `INTERNET` declarado aunque el juego no use red: sin él el WebView
+  no procesa la URL `https://` virtual de los assets y muestra `ERR_CACHE_MISS`
+  (ocurrió en la primera prueba en dispositivo).
 - Comprobado: `./gradlew assembleDebug` compila en este entorno (SDK 35,
   build-tools 35). **No se ha probado en un dispositivo ni emulador real**:
   el comportamiento del WebView (rendimiento, audio, barras del sistema) debe
